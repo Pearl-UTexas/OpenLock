@@ -8,7 +8,7 @@ from openlock.settings_render import BOX2D_SETTINGS
 DEBUG = True
 
 
-# TODO: move elsewhere, or get rid of dict config and just pass in list of links?
+# TODO(mjedmonds): move elsewhere, or get rid of dict config and just pass in list of links?
 def generate_five_arm(t1, t2, t3, t4, t5):
     length = BOX2D_SETTINGS["ARM_LENGTH"]
     return [
@@ -86,7 +86,7 @@ def discretize_path(cur, targ, step_delta):
 
     assert np.isclose(waypoints[-1].x, targ.x, rtol=1e-01, atol=1e-02)
 
-    # TODO: handle +/- pi case
+    # TODO(mjedmonds): handle +/- pi case
     # assert np.isclose(waypoints[-1].y, targ.y, rtol=1e-01, atol=1e-02)
     # if np.isclose(abs(waypoints[-1].theta), np.pi) or np.isclose(abs(targ.theta), np.pi):
     #     assert np.isclose(abs(waypoints[1].theta), abs(targ.theta), rtol=1e-01, atol=1e-02)

@@ -1,18 +1,20 @@
-from openlock.common import ENTITY_STATES
 import numpy as np
+from typing_extensions import Final
+
+from openlock.common import ENTITY_STATES
 
 
 class RewardStrategy(object):
     def __init__(self):
-        self.REWARD_NONE = 0
-        self.REWARD_CHANGE_OBS = 0.5
-        self.REWARD_IMMOVABLE = -0.5
-        self.REWARD_REPEATED_ACTION = -0.25
-        self.REWARD_PARTIAL_SEQ = 1
-        self.REWARD_UNLOCK = 10
-        self.REWARD_OPEN = 50
-        self.REWARD_DOOR_SEQ = 0.5
-        self.SOLUTION_MULTIPLIER = 1.5
+        self.REWARD_NONE: Final[float] = 0
+        self.REWARD_CHANGE_OBS: Final[float] = 0.5
+        self.REWARD_IMMOVABLE: Final[float] = -0.5
+        self.REWARD_REPEATED_ACTION: Final[float] = -0.25
+        self.REWARD_PARTIAL_SEQ: Final[float] = 1
+        self.REWARD_UNLOCK: Final[float] = 10
+        self.REWARD_OPEN: Final[float] = 50
+        self.REWARD_DOOR_SEQ: Final[float] = 0.5
+        self.solution_multiplier = 1.5
         self.counter = np.zeros(10)
         self.attempt_count = 0
 
@@ -27,7 +29,7 @@ class RewardStrategy(object):
                     return ind
             return -1
 
-        self.SOLUTION_MULTIPLIER = 1.0
+        self.solution_multiplier = 1.0
 
         completed_solutions = env.get_completed_solutions()
         solutions = env.get_solutions()
@@ -52,7 +54,7 @@ class RewardStrategy(object):
             and num_solutions_found == 0
         ):
             # if see a unique solution,  set the counter, init
-            self.SOLUTION_MULTIPLIER = 1.0  # set multiplier to 1.0 for the first time
+            self.solution_multiplier = 1.0  # set multiplier to 1.0 for the first time
 
         if (
             index != -1
@@ -68,11 +70,11 @@ class RewardStrategy(object):
             cooling_percentage = self.counter[index] / (
                 env.attempt_limit * 0.3
             )  # set threshold as 0.3 * attempt
-            self.SOLUTION_MULTIPLIER = max(
+            self.solution_multiplier = max(
                 1.5 - 0.5 * cooling_percentage, 1.0
             )  # if smaller than 1.0, set as 1.0
         # print self.counter, self.SOLUTION_MULTIPLIER
-        self.SOLUTION_MULTIPLIER = 10.0
+        self.solution_multiplier = 10.0
 
     def determine_reward(self, env, action, reward_mode):
         reward = 0
@@ -112,9 +114,7 @@ class RewardStrategy(object):
                 env, action
             )
         else:
-            raise ValueError(
-                str("Unknown reward function mode: %s".format(reward_mode))
-            )
+            raise ValueError(f"Unknown reward function mode: {reward_mode}")
 
         return reward, door_open
 
@@ -337,7 +337,7 @@ class RewardStrategy(object):
         """
         num_solutions_found = len(env.get_completed_solutions())
         multiplier = (
-            self.SOLUTION_MULTIPLIER
+            self.solution_multiplier
         )  # max(1, 1 * self.SOLUTION_MULTIPLIER * num_solutions_found)
         unique_seq = (
             env.determine_unique_solution() or env.determine_unique_partial_solution()
@@ -379,7 +379,7 @@ class RewardStrategy(object):
 
         num_solutions_found = len(env.get_completed_solutions())
         multiplier = (
-            self.SOLUTION_MULTIPLIER
+            self.solution_multiplier
         )  # max(1, 1 * self.SOLUTION_MULTIPLIER * num_solutions_found)
         unique_seq = (
             env.determine_unique_solution() or env.determine_unique_partial_solution()
@@ -426,7 +426,7 @@ class RewardStrategy(object):
         """
 
         num_solutions_found = len(env.get_completed_solutions())
-        multiplier = max(1, 1 * self.SOLUTION_MULTIPLIER * num_solutions_found)
+        multiplier = max(1, 1 * self.solution_multiplier * num_solutions_found)
         unique_seq = (
             env.determine_unique_solution() or env.determine_unique_partial_solution()
         )

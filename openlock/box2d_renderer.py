@@ -56,7 +56,7 @@ class Box2DRenderer:
 
         self.reset()
 
-        # TODO: registry decorator
+        # TODO(mjedmonds): registry decorator
         self.on_mouse_press_callbacks, self.on_mouse_release_callbacks = (
             {self._detect_region_click},
             {},

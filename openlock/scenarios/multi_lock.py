@@ -11,7 +11,7 @@ class MultiLockScenario(object):
         "pulled,",
         "pushed,",
     ]  # '+' -> locked/pulled, '-' -> unlocked/pushed
-    # todo: make names between obj_map in env consistent with names in FSM (extra ':' in FSM)
+    # TODO(mjedmonds): make names between obj_map in env consistent with names in FSM (extra ':' in FSM)
     observable_vars = ["l0:", "l1:", "l2:"]
     observable_initial_state = "l0:pulled,l1:pulled,l2:pushed,"
 
@@ -118,11 +118,11 @@ class MultiLockScenario(object):
         """
         observable_state = self.fsmm.observable_fsm.state
         if observable_state in self.door_unlock_criteria:
-            # todo: currently this will unlock all doors, need to make it so each door has it's own connection to observable state
+            # TODO(mjedmonds): currently this will unlock all doors, need to make it so each door has it's own connection to observable state
             for door in self.latent_vars:
                 self.fsmm.latent_fsm.trigger("unlock_{}".format(door))
         else:
-            # todo: currently this will lock all doors, need to make it so each door has it's own connection to observable state
+            # TODO(mjedmonds): currently this will lock all doors, need to make it so each door has it's own connection to observable state
             for door in self.latent_vars:
                 if (
                     self.fsmm._extract_entity_state(self.fsmm.latent_fsm.state, door)
@@ -176,7 +176,7 @@ class MultiLockScenario(object):
         :return:
         """
 
-        # todo: come up with a better way to set self.world_def without passing as an argument here
+        # TODO(mjedmonds): come up with a better way to set self.world_def without passing as an argument here
         self.world_def = world_def
 
         for i in range(0, len(self.lever_configs)):

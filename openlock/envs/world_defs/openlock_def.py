@@ -15,10 +15,10 @@ import openlock.common as common
 from openlock.pid_central import PIDController
 from openlock.settings_render import BOX2D_SETTINGS
 
-# TODO: cleaner interface than indices between bodies and lengths
-# TODO: cleanup initialization/reset method
-# TODO: no __ for class parameters
-# TODO: add state machine here
+# TODO(mjedmonds): cleaner interface than indices between bodies and lengths
+# TODO(mjedmonds): cleanup initialization/reset method
+# TODO(mjedmonds): no __ for class parameters
+# TODO(mjedmonds): add state machine here
 
 # class Clickable(object):
 #
@@ -253,7 +253,7 @@ class ArmLockDef(object):
         """
         if effect_probabalities is None:
             effect_probabalities = common.generate_effect_probabilities()
-        # TODO: better setup interface
+        # TODO(mjedmonds): better setup interface
 
         door_position = common.ObjectPositionEnum.DOOR
         self.door = common.Door(
@@ -263,13 +263,15 @@ class ArmLockDef(object):
             color=common.COLORS["active"],
             width=common.DOOR_WIDTH,
             length=common.DOOR_LENGTH,
-            effect_probability=effect_probabalities["door"]
+            effect_probability=effect_probabalities["door"],
         )
         self.obj_map["door"] = self.door
 
-        door_right_button_x, door_right_button_y, door_right_button_theta = (
-            door_position.config
-        )
+        (
+            door_right_button_x,
+            door_right_button_y,
+            door_right_button_theta,
+        ) = door_position.config
         door_right_button_x += 3 + common.DOOR_WIDTH / 2
         door_right_button_y += 3 + common.DOOR_LENGTH / 2
         door_right_button_config = common.TwoDConfig(
@@ -294,8 +296,8 @@ class ArmLockDef(object):
         # self.obj_map['save_button'] = causal_classes.py.Button(world_def=self, config=button_config, color=causal_classes.py.COLORS['save_button'], name='save_button', height=1.5, width=3)
         # self.obj_map['reset_button'] = causal_classes.py.Button(world_def=self, config=button_config, color=causal_classes.py.COLORS['reset_button'], name='reset_button', height=1.5, width=3, x_offset=7)
 
-        # TODO: this is a bit of a hack to pass self to init_scenario_env, but there isn't a clean
-        # TODO: to have dual references during intialization
+        # TODO(mjedmonds): this is a bit of a hack to pass self to init_scenario_env, but there isn't a clean
+        # TODO(mjedmonds): to have dual references during intialization
         if self.scenario is not None:
             self.scenario.init_scenario_env(self, effect_probabalities)
 
@@ -445,7 +447,7 @@ class ArmLockDef(object):
     #     if self.clock % BOX2D_SETTINGS['STATE_MACHINE_CLK_DIV'] == 0:
     #         self.scenario.update_state_machine()
 
-    # TODO: implement
+    # TODO(mjedmonds): implement
     def reset_world(self):
         """Returns the world to its intial state"""
         pass

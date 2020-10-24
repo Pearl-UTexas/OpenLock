@@ -10,7 +10,7 @@ RENDER_SETTINGS = {
     "SCALE": 15.0,
     "DRAW_SHAPES": True,
     "DRAW_JOINTS": True,
-    "DRAW_AABB": False,  # TODO
+    "DRAW_AABB": False,  # TODO(mjedmonds):
     "DRAW_MARKERS": True,
     "COLORS": COLORS,
 }

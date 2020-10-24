@@ -123,7 +123,7 @@ class Scenario(object):
         :return: Nothing
         """
         for door in self.latent_vars:
-            # todo: only supports one door
+            # TODO(mjedmonds): only supports one door
             self.fsmm.latent_fsm.machine.add_transition(
                 "lock_{}".format(door), "door:locked,", "door:locked,"
             )
@@ -145,11 +145,11 @@ class Scenario(object):
         """
         observable_state = self.fsmm.observable_fsm.state
         if observable_state in self.door_unlock_criteria:
-            # todo: currently this will unlock all doors, need to make it so each door has it's own connection to observable state
+            # TODO(mjedmonds): currently this will unlock all doors, need to make it so each door has it's own connection to observable state
             for door in self.latent_vars:
                 self.fsmm.latent_fsm.trigger("unlock_{}".format(door))
         else:
-            # todo: currently this will lock all doors, need to make it so each door has it's own connection to observable state
+            # TODO(mjedmonds): currently this will lock all doors, need to make it so each door has it's own connection to observable state
             for door in self.latent_vars:
                 if (
                     self.fsmm.extract_entity_state(self.fsmm.latent_fsm.state, door)
@@ -195,7 +195,7 @@ class Scenario(object):
         door_lock_state = door_lock_state[: len(door_lock_state) - 1].upper()
         door_lock_state = np.int8(common.ENTITY_STATES["DOOR_" + door_lock_state])
 
-        # todo: this is a hack to get whether or not the door is actually open; it should be part of the FSM
+        # TODO(mjedmonds): this is a hack to get whether or not the door is actually open; it should be part of the FSM
         door_state = np.int8(self.door_state)
 
         state["door"] = door_state
@@ -304,7 +304,7 @@ class Scenario(object):
         self._update_env()
         self.update_latent()
 
-    # todo: this is a quick hack to represent actually opening the door, which is not included in any transition
+    # TODO(mjedmonds): this is a quick hack to represent actually opening the door, which is not included in any transition
     def push_door(self):
         """
         Hack to represent actually pulling the door. Not included in any transition.
@@ -337,11 +337,11 @@ class Scenario(object):
 
             for lever in self.levers:
                 # assign lever
-                lever.effect_probability = common.assign_effect_probabilities(lever.name, effect_probabilities)
+                lever.effect_probability = common.assign_effect_probabilities(
+                    lever.name, effect_probabilities
+                )
                 if lever.opt_params:
-                    lever.create_lever(
-                        world_def, lever.position, **lever.opt_params
-                    )
+                    lever.create_lever(world_def, lever.position, **lever.opt_params)
                 else:
                     lever.create_lever(world_def, lever.position)
                 world_def.obj_map[lever.name] = lever
@@ -349,10 +349,12 @@ class Scenario(object):
         # bypassing physics, obj_map consists of door and levers
         else:
             for lever in self.levers:
-                lever.effect_probability = common.assign_effect_probabilities(lever.name, effect_probabilities)
+                lever.effect_probability = common.assign_effect_probabilities(
+                    lever.name, effect_probabilities
+                )
                 self.obj_map[lever.name] = lever
-            # todo: this is a dirty hack to get the door in
-            # todo: define a global configuration that includes levers and doors
+            # TODO(mjedmonds): this is a dirty hack to get the door in
+            # TODO(mjedmonds): define a global configuration that includes levers and doors
             # add door because it is not originally in the map
             door_position = common.ObjectPositionEnum.DOOR
             self.obj_map["door"] = common.Door(
@@ -362,7 +364,9 @@ class Scenario(object):
                 color=common.COLORS["active"],
                 width=common.DOOR_WIDTH,
                 length=common.DOOR_LENGTH,
-                effect_probability=common.assign_effect_probabilities("door", effect_probabilities)
+                effect_probability=common.assign_effect_probabilities(
+                    "door", effect_probabilities
+                ),
             )
             self.obj_map["door_lock"] = "door_lock"
 

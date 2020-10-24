@@ -11,7 +11,7 @@ class TwoStepTestingScenario(Scenario):
         "pulled,",
         "pushed,",
     ]  # '+' -> locked/pulled, '-' -> unlocked/pushed
-    # todo: make names between obj_map in env consistent with names in FSM (extra ':' in FSM)
+    # TODO(mjedmonds): make names between obj_map in env consistent with names in FSM (extra ':' in FSM)
     observable_vars = ["l0:", "l1:"]
     observable_initial_state = "l0:pulled,l1:pulled,"
 

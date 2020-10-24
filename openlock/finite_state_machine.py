@@ -153,7 +153,7 @@ class FiniteStateMachineManager:
             # changes in observable FSM will trigger a callback to update the latent FSM if needed
             self.observable_fsm.trigger(action)
         else:
-            # todo: dirty hack to get door pushing action
+            # TODO(mjedmonds): dirty hack to get door pushing action
             if action == "push_door:":
                 self.scenario.push_door()
             else:
@@ -182,8 +182,6 @@ class FiniteStateMachineManager:
             else:
                 tokens[
                     i
-                ] += (
-                    ","
-                )  # next_obj_state should contain ',', but split removes ',' from all others
+                ] += ","  # next_obj_state should contain ',', but split removes ',' from all others
         new_state = "".join(tokens)
         return new_state

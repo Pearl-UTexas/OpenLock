@@ -11,7 +11,7 @@ class CommonEffect4Scenario(Scenario):
         "pulled,",
         "pushed,",
     ]  # '+' -> locked/pulled, '-' -> unlocked/pushed
-    # todo: make names between obj_map in env consistent with names in FSM (extra ':' in FSM)
+    # TODO(mjedmonds): make names between obj_map in env consistent with names in FSM (extra ':' in FSM)
     observable_vars = ["l0:", "l1:", "l2:", "l3:"]
     observable_initial_state = "l0:pulled,l1:pulled,l2:pulled,l3:pulled,"
 
@@ -140,7 +140,9 @@ class CommonEffect4Scenario(Scenario):
         :return:
         """
 
-        super(CommonEffect4Scenario, self).init_scenario_env(world_def, effect_probabilities=effect_probabilities)
+        super(CommonEffect4Scenario, self).init_scenario_env(
+            world_def, effect_probabilities=effect_probabilities
+        )
 
         if self.use_physics:
             self.obj_map["l0"].lock()  # initially lock l3

@@ -16,7 +16,7 @@ if "Apple" in sys.version:
 from gym.utils import reraise
 from gym import error
 
-# TODO: refactor this, use batch?
+# TODO(mjedmonds): refactor this, use batch?
 try:
     import pyglet
 except ImportError as e:

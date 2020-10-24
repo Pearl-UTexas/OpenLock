@@ -44,7 +44,7 @@ class PIDController(object):
 
         self.previous_error = self.error
 
-        # TODO: incorporate dynamics?
+        # TODO(mjedmonds): incorporate dynamics?
         out = [p + i + d for p, i, d in zip(p_term, i_term, d_term)]
 
         if self.max_out:
