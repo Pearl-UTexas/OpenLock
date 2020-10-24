@@ -1,23 +1,35 @@
-import re
-import numpy as np
+from __future__ import annotations
 
-# from transitions.extensions import GraphMachine as Machine
-from transitions import Machine
+import logging
+from itertools import product
+from typing import Dict, List, Sequence
+
+from transitions import Machine  # type: ignore
+
+from openlock.scenarios.scenario import Scenario
 
 
-def cartesian_product(*lists):
-    result = [[]]
-    for list in lists:
-        result = [x + [y] for x in result for y in list]
-    return ["".join(elem) for elem in result]
+def cartesian_product(*lists: Sequence[str]) -> List[str]:
+    """ Given a number of sequences of tokens, returns all strings from the product of tokens."""
+    out = list()
+    for choice in product(*lists):
+        out += ["".join(choice)]
+    return out
 
 
 class FiniteStateMachine:
-    def __init__(self, fsm_manager, name, vars, states, initial_state):
+    def __init__(
+        self,
+        fsm_manager: FiniteStateMachineManager,
+        name: str,
+        vars: List[str],
+        states: List[str],
+        initial_state: str,
+    ):
         self.fsm_manager = fsm_manager
         self.name = name
         self.vars = vars
-        self.state_permutations = self._permutate_states(states)
+        self.state_permutations = self._permute_states(vars, states)
         self.initial_state = initial_state
 
         self.machine = Machine(
@@ -28,30 +40,27 @@ class FiniteStateMachine:
             auto_transitions=False,
         )
 
-    def _permutate_states(self, states):
-        assert len(self.vars) > 0
+    @staticmethod
+    def _permute_states(vars: Sequence[str], states: Sequence[str]) -> List[str]:
+        """ Returns all possible sequences of all variables in all states. """
+        assert len(vars) > 0
+        assert len(states) > 0
 
-        v_list = cartesian_product([self.vars[0]], states)
-        for i in range(1, len(self.vars)):
-            v_list = cartesian_product(
-                v_list, cartesian_product([self.vars[i]], states)
-            )
+        v_list: List[str] = list()
+        for var in vars:
+            v_list = cartesian_product(v_list, cartesian_product(var, states))
 
-        # return cartesian_product(observable_v_list, door_list)
         return v_list
 
-    def reset(self):
+    def reset(self) -> None:
         self.machine.set_state(self.initial_state)
 
-    def update_manager(self):
+    def update_manager(self) -> None:
         """
-        tells FSM manager to update the other FSM (latent/observable) based on the changes this FSM (obserable/latent) made
+        Tells FSM manager to update the other FSM (latent/observable) based on the changes this FSM (obserable/latent) made
         :return:
         """
-        if self.name == "observable":
-            self.fsm_manager.update_latent()
-        else:
-            self.fsm_manager.update_observable()
+        self.fsm_manager.update(self)
 
 
 class FiniteStateMachineManager:
@@ -61,14 +70,14 @@ class FiniteStateMachineManager:
 
     def __init__(
         self,
-        scenario,
-        o_states,
-        o_vars,
-        o_initial,
-        l_states,
-        l_vars,
-        l_initial,
-        actions,
+        scenario: Scenario,
+        o_states: List[str],
+        o_vars: List[str],
+        o_initial: str,
+        l_states: List[str],
+        l_vars: List[str],
+        l_initial: str,
+        actions: List[str],
     ):
         self.scenario = scenario
         self.observable_states = o_states
@@ -97,7 +106,7 @@ class FiniteStateMachineManager:
             initial_state=self.latent_initial_state,
         )
 
-    def reset(self):
+    def reset(self) -> None:
         """
         resets both the observable fsm and latent fsm
         :return:
@@ -105,7 +114,7 @@ class FiniteStateMachineManager:
         self.observable_fsm.reset()
         self.latent_fsm.reset()
 
-    def get_latent_states(self):
+    def get_latent_states(self) -> Dict[str, str]:
         """
         extracts latent variables and their state into a dictonary. key: variable. value: variable state
         :return: dictionary of variables to their corresponding variable state
@@ -119,7 +128,7 @@ class FiniteStateMachineManager:
 
         # parses out the state of a specified object from a full state string
 
-    def get_observable_states(self):
+    def get_observable_states(self) -> Dict[str, str]:
         """
         extracts observable variables and their state into a dictonary. key: variable. value: variable state
         :return: dictionary of variables to their corresponding variable state
@@ -131,24 +140,35 @@ class FiniteStateMachineManager:
             )
         return observable_states
 
-    def get_internal_state(self):
+    def get_internal_state(self) -> str:
         return self.observable_fsm.state + self.latent_fsm.state
 
-    def update_latent(self):
+    def update(self, messenger: FiniteStateMachine) -> None:
+        """ Updates the state space based"""
+        if messenger.name == "observable":
+            self.update_latent()
+        elif messenger.name == "latent":
+            self.update_observable()
+        else:
+            logging.warning(
+                f"Asked to update by FSM with name={messenger.name} which is neither observable nor latent."
+            )
+
+    def update_latent(self) -> None:
         """
         updates the latent state space according to the scenario
         :return:
         """
         self.scenario.update_latent()
 
-    def update_observable(self):
+    def update_observable(self) -> None:
         """
         updates the observable state space according to the scenario
         :return:
         """
         self.scenario.update_observable()
 
-    def execute_action(self, action):
+    def execute_action(self, action: str) -> None:
         if action in self.actions:
             # changes in observable FSM will trigger a callback to update the latent FSM if needed
             self.observable_fsm.trigger(action)
@@ -157,10 +177,10 @@ class FiniteStateMachineManager:
             if action == "push_door:":
                 self.scenario.push_door()
             else:
-                raise ValueError("unknown action '{}".format(action) + "'")
+                raise ValueError(f"unknown action '{action}'")
 
     @staticmethod
-    def extract_entity_state(state, obj):
+    def extract_entity_state(state: str, obj: str) -> str:
         obj_start_idx = state.find(obj)
         # extract object name + state
         obj_str = state[obj_start_idx : state.find(",", obj_start_idx) + 1]
@@ -170,7 +190,9 @@ class FiniteStateMachineManager:
 
     # changes obj's state in state (full state) to next_obj_state
     @staticmethod
-    def change_entity_state(state, entity, next_obj_state):
+    def change_entity_state(state: str, entity, next_obj_state: str) -> str:
+        # TODO(joschnei): What is an entity? This function is never called.
+        # TODO(joschnei): Delete this function as deadcode if I don't find a use for it soon.
         tokens = state.split(",")
         tokens.pop(len(tokens) - 1)  # remove empty string at end of array
         for i in range(len(tokens)):
