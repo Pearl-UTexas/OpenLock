@@ -127,7 +127,7 @@ def verify_simulator_fsm_match(agent, num_attempts_per_scenario):
 
 def test_rewards(agent):
 
-    data_dir = "./test-output/rewards"
+    data_dir = "./test_output/rewards"
 
     scenarios_to_test = ["CE3", "CE4", "CC3", "CC4"]
 
@@ -313,7 +313,7 @@ def main():
     params = {"data_dir": ROOT_DIR + "/../OpenLockUnitTests"}
 
     agent = Agent("unit tester", params, env)
-    agent.setup_subject(project_src="test-output")
+    agent.setup_subject(project_src="test_output")
 
     print("Starting unit tests.")
 
@@ -332,7 +332,7 @@ def main():
     print("Verifying physics simulator and FSM output matches.")
     env = gym.make("openlock-v1")
     agent = Agent("unit tester", params, env)
-    agent.setup_subject(project_src="test-output")
+    agent.setup_subject(project_src="test_output")
 
     verify_simulator_fsm_match(agent, 100)
 
@@ -340,7 +340,7 @@ def main():
 
     env = gym.make("openlock-v1")
     agent = Agent("unit tester", params, env)
-    agent.setup_subject(project_src="test-output")
+    agent.setup_subject(project_src="test_output")
 
     # bypass physics sim
     agent.env.use_physics = False

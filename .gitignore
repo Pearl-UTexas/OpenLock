@@ -9,4 +9,4 @@ dist/
 *.egg
 .ropeproject
 **/.mypy_cache
-**/rewards
+test_output/rewards/
