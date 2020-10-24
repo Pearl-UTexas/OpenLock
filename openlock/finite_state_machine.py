@@ -11,10 +11,7 @@ from openlock.scenarios.scenario import Scenario
 
 def cartesian_product(*lists: Sequence[str]) -> List[str]:
     """ Given a number of sequences of tokens, returns all strings from the product of tokens."""
-    out = list()
-    for choice in product(*lists):
-        out += ["".join(choice)]
-    return out
+    return ["".join(choice) for choice in product(*lists)]
 
 
 class FiniteStateMachine:
