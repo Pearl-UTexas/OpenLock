@@ -1,17 +1,26 @@
 """
 Outlines the structure and causal_classes functionality across scenarios
 """
+from __future__ import annotations
+
 import re
+from typing import Dict, Optional, Sequence, Tuple, Union
+
 import numpy as np
 
 import openlock.common as common
+from openlock.common import LeverConfig
+from openlock.envs.world_defs.openlock_def import ArmLockDef
+from openlock.finite_state_machine import FiniteStateMachineManager
 
 
-class Scenario(object):
+class Scenario:
     """
     Parent class for scenarios. Outline the structure and causal_classes functionality across scenarios.
     Manage the specific scenario currently in use. Encodes logic and solutions into the environment.
     """
+
+    fsmm: FiniteStateMachineManager
 
     def __init__(self, use_physics=True):
         """
@@ -22,11 +31,11 @@ class Scenario(object):
         self.use_physics = use_physics
         self.levers = []
         self.lever_configs = None
-        self.world_def = None
+        self.world_def: Optional[ArmLockDef] = None
         self.door_state = common.ENTITY_STATES["DOOR_CLOSED"]
         self.obj_map = dict()
 
-    def set_lever_configs(self, lever_configs):
+    def set_lever_configs(self, lever_configs: Dict[int, LeverConfig]) -> None:
         """
         Set self.lever_configs and self.levers. Give each inactive lever a unique name.
 
@@ -38,10 +47,11 @@ class Scenario(object):
 
         num_inactive = 0  # give inactive levers a unique name
         for lever_config in self.lever_configs:
+            # TODO(joschnei): Add types to LeverConfig
             position, role, opt_params = lever_config
             # give unique names to every inactive
             if role == "inactive":
-                role = "inactive{}".format(num_inactive)
+                role = f"inactive{num_inactive}"
                 num_inactive += 1
                 color = common.COLORS["inactive"]
                 effect_probability = 0.0
@@ -53,7 +63,9 @@ class Scenario(object):
             lever = common.Lever(role, position, color, opt_params, effect_probability)
             self.levers.append(lever)
 
-    def add_no_ops(self, lock, pushed, pulled):
+    def add_no_ops(
+        self, lock: str, pushed: Sequence[str], pulled: Sequence[str]
+    ) -> None:
         """
         Add transitions to self.fsmm from state back to same state when performing action that already matches the state.
 
@@ -65,25 +77,29 @@ class Scenario(object):
         # add transitions from state back to same state when performing an action that already matches the state
         for state in pulled:
             self.fsmm.observable_fsm.machine.add_transition(
-                "pull_{}".format(lock), state, state
+                f"pull_{lock}", state, state
             )
         for state in pushed:
             self.fsmm.observable_fsm.machine.add_transition(
-                "push_{}".format(lock), state, state
+                f"push_{lock}", state, state
             )
+
         # generate the complement states that don't have transitions
         comp_pulled, comp_pushed = self.generate_complement_states(lock, pushed, pulled)
+
         # add transitions from state back to same state when
         for state in comp_pushed:
             self.fsmm.observable_fsm.machine.add_transition(
-                "pull_{}".format(lock), state, state
+                f"pull_{lock}", state, state
             )
         for state in comp_pulled:
             self.fsmm.observable_fsm.machine.add_transition(
-                "push_{}".format(lock), state, state
+                f"push_{lock}", state, state
             )
 
-    def generate_complement_states(self, lock, pushed, pulled):
+    def generate_complement_states(
+        self, lock: str, pushed: Sequence[str], pulled: Sequence[str]
+    ) -> Tuple[Sequence[str], Sequence[str]]:
         """
         Give the complement pushed and pulled states for given lock, pushed states, and pulled states.
 
@@ -104,7 +120,7 @@ class Scenario(object):
         ]
         return comp_pulled, comp_pushed
 
-    def add_nothing_transition(self):
+    def add_nothing_transition(self) -> None:
         """
         Add transitions for each state in both FSMs for the nothing action to take state back to same state.
 
@@ -116,7 +132,7 @@ class Scenario(object):
         for state in self.fsmm.latent_fsm.state_permutations:
             self.fsmm.latent_fsm.machine.add_transition("nothing", state, state)
 
-    def add_door_transitions(self):
+    def add_door_transitions(self) -> None:
         """
         Add latent FSM transitions for locking and unlocking door.
 
@@ -125,29 +141,33 @@ class Scenario(object):
         for door in self.latent_vars:
             # TODO(mjedmonds): only supports one door
             self.fsmm.latent_fsm.machine.add_transition(
-                "lock_{}".format(door), "door:locked,", "door:locked,"
+                f"lock_{door}".format(), "door:locked,", "door:locked,"
             )
             self.fsmm.latent_fsm.machine.add_transition(
-                "lock_{}".format(door), "door:unlocked,", "door:locked,"
+                f"lock_{door}", "door:unlocked,", "door:locked,"
             )
             self.fsmm.latent_fsm.machine.add_transition(
-                "unlock_{}".format(door), "door:locked,", "door:unlocked,"
+                f"unlock_{door}", "door:locked,", "door:unlocked,"
             )
             self.fsmm.latent_fsm.machine.add_transition(
-                "unlock_{}".format(door), "door:unlocked,", "door:unlocked,"
+                f"unlock_{door}", "door:unlocked,", "door:unlocked,"
             )
 
-    def update_latent(self):
+    def update_latent(self) -> None:
         """
         Logic to transition in the latent state space based on the observable state space, if needed.
 
         :return: Nothing
         """
         observable_state = self.fsmm.observable_fsm.state
+        # TODO(joschnei): The first loop locks all doors, including doors which have already been
+        # locked. Attempting to lock a locked door does nothing, so this should be fine. But then
+        # why do we check explicitly for if the door is locked when we unlock the door, as the same
+        # is true?
         if observable_state in self.door_unlock_criteria:
             # TODO(mjedmonds): currently this will unlock all doors, need to make it so each door has it's own connection to observable state
             for door in self.latent_vars:
-                self.fsmm.latent_fsm.trigger("unlock_{}".format(door))
+                self.fsmm.latent_fsm.trigger(f"unlock_{door}")
         else:
             # TODO(mjedmonds): currently this will lock all doors, need to make it so each door has it's own connection to observable state
             for door in self.latent_vars:
@@ -155,9 +175,9 @@ class Scenario(object):
                     self.fsmm.extract_entity_state(self.fsmm.latent_fsm.state, door)
                     != "locked,"
                 ):
-                    self.fsmm.latent_fsm.trigger("lock_{}".format(door))
+                    self.fsmm.latent_fsm.trigger(f"lock_{door}")
 
-    def reset(self):
+    def reset(self) -> None:
         """
         Reset the FSM to the initial state for both FSMs.
 
@@ -166,7 +186,7 @@ class Scenario(object):
         self.fsmm.reset()
         self.door_state = common.ENTITY_STATES["DOOR_CLOSED"]
 
-    def get_obj_state(self):
+    def get_obj_state(self) -> Dict[str, np.int8]:
         """
         Get state of all levers and the door.
 
@@ -203,7 +223,7 @@ class Scenario(object):
 
         return state
 
-    def get_state(self):
+    def get_state(self) -> Dict[str, Dict[str, Union[str, np.int8]]]:
         """
         Get state of levers and door, and the fsm state.
 
@@ -213,7 +233,7 @@ class Scenario(object):
         fsm_state = self.fsmm.get_internal_state()
         return {"OBJ_STATES": obj_states, "_FSM_STATE": fsm_state}
 
-    def update_observable(self):
+    def update_observable(self) -> None:
         """
         Update observable fsm based on some change in the observable fsm, if needed.
 
@@ -221,16 +241,15 @@ class Scenario(object):
         """
         pass
 
-    def update_state_machine(self, action=None):
+    def update_state_machine(self, action: Optional[str] = None) -> None:
         """
         Update the finite state machines according to object status in the Box2D environment.
 
         :param action: Action to be executed if not using physics, otherwise will only execute if pushing door.
         :return: Nothing
         """
-        prev_state = self.fsmm.observable_fsm.state
-
-        # updates the FSM based on the results of the physics simulator. If use_physics is false, we will directly execute the action within the FSM.
+        # updates the FSM based on the results of the physics simulator. If use_physics is false,
+        # we will directly execute the action within the FSM.
         if self.use_physics:
             # execute state transitions
             # check locks
@@ -248,7 +267,7 @@ class Scenario(object):
             if action is not None and action.name is "push" and action.obj == "door":
                 self.push_door()
 
-    def execute_fsm_action(self, action):
+    def execute_fsm_action(self, action: str) -> None:
         """
         Run FSM action (push/pull).
 
@@ -269,7 +288,7 @@ class Scenario(object):
             elif action.name == "pull":
                 self.execute_pull(fsm_name)
 
-    def execute_push(self, obj_name):
+    def execute_push(self, obj_name: str) -> None:
         """
         Execute a push action.
 
@@ -284,7 +303,7 @@ class Scenario(object):
             action = "push_{}".format(obj_name)
             self._execute_action(action)
 
-    def execute_pull(self, obj_name):
+    def execute_pull(self, obj_name: str) -> None:
         """
         Execute a pull action.
 
@@ -299,13 +318,13 @@ class Scenario(object):
             action = "pull_{}".format(obj_name)
             self._execute_action(action)
 
-    def _execute_action(self, action):
+    def _execute_action(self, action: str) -> None:
         self.fsmm.execute_action(action)
         self._update_env()
         self.update_latent()
 
     # TODO(mjedmonds): this is a quick hack to represent actually opening the door, which is not included in any transition
-    def push_door(self):
+    def push_door(self) -> None:
         """
         Hack to represent actually pulling the door. Not included in any transition.
 
@@ -318,7 +337,11 @@ class Scenario(object):
             self.door_state = common.ENTITY_STATES["DOOR_OPENED"]
             self.update_latent()
 
-    def init_scenario_env(self, world_def=None, effect_probabilities=None):
+    def init_scenario_env(
+        self,
+        world_def: Optional[ArmLockDef] = None,
+        effect_probabilities: Optional[Dict[str, float]] = None,
+    ) -> None:
         """
         Initialize the Box2D environment.
 
@@ -370,7 +393,7 @@ class Scenario(object):
             )
             self.obj_map["door_lock"] = "door_lock"
 
-    def _update_env(self):
+    def _update_env(self) -> None:
         """
         Update the Box2D environment based on the state of the finite state machine.
 
@@ -381,7 +404,7 @@ class Scenario(object):
             self._update_latent_objs()
             self._update_observable_objs()
 
-    def _update_latent_objs(self):
+    def _update_latent_objs(self) -> None:
         """
         Update parts of environment corresponding to latent variables.
 
@@ -390,7 +413,7 @@ class Scenario(object):
         latent_states = self.fsmm.get_latent_states()
         for latent_var in list(latent_states.keys()):
             # ---------------------------------------------------------------
-            # Add code to change part of the environment corresponding to a latent variable here
+            # TODO(mjedmons): Add code to change part of the environment corresponding to a latent variable here
             # ---------------------------------------------------------------
             if latent_var == "door:":
                 if (
@@ -404,7 +427,7 @@ class Scenario(object):
                 ):
                     self.obj_map["door"].unlock()
 
-    def _update_observable_objs(self):
+    def _update_observable_objs(self) -> None:
         """
         Update observable objects in the Box2D environment based on the observable state of the FSM.
         Almost always is Scenario-specific, so we pass here.

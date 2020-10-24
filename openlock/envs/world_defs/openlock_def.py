@@ -1,17 +1,16 @@
 import re
 
 import numpy as np
+import openlock.common as common
 from Box2D import (
+    b2CircleShape,
     b2ContactListener,
-    b2Vec2,
-    b2World,
+    b2Dot,
     b2FixtureDef,
     b2PolygonShape,
-    b2CircleShape,
-    b2Dot,
+    b2Vec2,
+    b2World,
 )
-
-import openlock.common as common
 from openlock.pid_central import PIDController
 from openlock.settings_render import BOX2D_SETTINGS
 
@@ -116,7 +115,7 @@ class ArmLockContactListener(b2ContactListener):
             # self.__iterations += 1
 
 
-class ArmLockDef(object):
+class ArmLockDef:
     def __init__(self, chain, timestep, world_size, scenario, effect_probabilities):
         super(ArmLockDef, self).__init__()
 

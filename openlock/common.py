@@ -1,11 +1,12 @@
-from collections import namedtuple
 import copy
+from collections import namedtuple
+from typing import Dict, Optional
 
 import numpy as np
-
-from shapely.geometry import Polygon, Point
 from Box2D import *
+from shapely.geometry import Point, Polygon
 
+from openlock.envs.world_defs.openlock_def import ArmLockDef
 
 ENTITY_STATES = {
     "LEVER_PUSHED": 0,
@@ -117,15 +118,11 @@ COLOR_TO_COLOR_NAME = {
     Color(0.9, 0.9, 0.9): "WHITE",
 }
 
-def generate_effect_probabilities(l0=1.0, l1=1.0, l2=1.0, l3=1.0, door=1.0, others=0.0):
-    return {
-        "l0": l0,
-        "l1": l1,
-        "l2": l2,
-        "l3": l3,
-        "door": door,
-        "others": others
-    }
+
+def generate_effect_probabilities(
+    l0=1.0, l1=1.0, l2=1.0, l3=1.0, door=1.0, others=0.0
+) -> Dict[str, float]:
+    return {"l0": l0, "l1": l1, "l2": l2, "l3": l3, "door": door, "others": others}
 
 
 def assign_effect_probabilities(obj_name, effect_probabilities):
@@ -134,6 +131,7 @@ def assign_effect_probabilities(obj_name, effect_probabilities):
     else:
         effect_probability = effect_probabilities["others"]
     return effect_probability
+
 
 class Action:
     def __init__(self, name, obj, params):
@@ -189,7 +187,7 @@ class Object:
         color=None,
         int_test=None,
         ext_test=None,
-        effect_probability=1.0
+        effect_probability=1.0,
     ):
         self.fixture = fixture
         self.joint = joint
@@ -276,7 +274,13 @@ class Lever(Object):
         return str(self)
 
     def create_lever(
-        self, world_def, position, width=0.5, length=5, lower_lim=-2, upper_lim=0
+        self,
+        world_def: Optional[ArmLockDef],
+        position,
+        width=0.5,
+        length=5,
+        lower_lim=-2,
+        upper_lim=0,
     ):
         x, y, theta = position.config
         self.gravity = world_def.world.gravity
@@ -438,7 +442,15 @@ class Lever(Object):
 class Door(Object):
     # def __init__(self, door_fixture, door_joint, int_test, ext_test, name):
     def __init__(
-        self, world_def, name, position, color, width=0.5, length=10, locked=True, effect_probability=1.0
+        self,
+        world_def: Optional[ArmLockDef],
+        name,
+        position,
+        color,
+        width=0.5,
+        length=10,
+        locked=True,
+        effect_probability=1.0,
     ):
         # Object.__init__(self, name, door_fixture, joint=door_joint, int_test=int_test, ext_test=ext_test)
         Object.__init__(self, name, effect_probability=effect_probability)
@@ -507,14 +519,23 @@ class Door(Object):
             delta_x = np.cos(theta) * length
             delta_y = np.sin(theta) * length
 
-            self.door_lock.lock(self.world_def, self.fixture.body, x, y, delta_x, delta_y)
+            self.door_lock.lock(
+                self.world_def, self.fixture.body, x, y, delta_x, delta_y
+            )
         else:
             self.door_lock.lock()
 
     def unlock(self):
         self.door_lock.unlock(self.world_def)
 
-    def _create_door(self, world_def, position, width=0.5, length=10, locked=True):
+    def _create_door(
+        self,
+        world_def: Optional[ArmLockDef],
+        position,
+        width=0.5,
+        length=10,
+        locked=True,
+    ):
         # create door
         x, y, theta = position.config
 
@@ -560,7 +581,13 @@ class Lock(Object):
         self.locked = locked
 
     def lock(
-        self, world_def=None, body=None, x=None, y=None, delta_x=None, delta_y=None
+        self,
+        world_def: Optional[ArmLockDef] = None,
+        body=None,
+        x=None,
+        y=None,
+        delta_x=None,
+        delta_y=None,
     ):
         if world_def is not None:
             self.joint = world_def.world.CreateWeldJoint(
@@ -571,7 +598,7 @@ class Lock(Object):
 
         self.locked = True
 
-    def unlock(self, world_def=None):
+    def unlock(self, world_def: Optional[ArmLockDef] = None):
         if world_def is not None:
             world_def.world.DestroyJoint(self.joint)
 
@@ -581,7 +608,7 @@ class Lock(Object):
 class Button(Object):
     def __init__(
         self,
-        world_def,
+        world_def: Optional[ArmLockDef],
         position,
         color,
         name,

@@ -1,6 +1,8 @@
+from typing import Optional
+from openlock.envs.world_defs.openlock_def import ArmLockDef
 from openlock.finite_state_machine import FiniteStateMachineManager
-from openlock.scenarios.scenario import Scenario
 from openlock.logger_env import ActionLog
+from openlock.scenario import Scenario
 
 
 class TwoStepTestingScenario(Scenario):
@@ -31,7 +33,7 @@ class TwoStepTestingScenario(Scenario):
     def __init__(self, use_physics=True):
         super(TwoStepTestingScenario, self).__init__(use_physics=use_physics)
 
-        self.world_def = None  # handle to the Box2D world
+        self.world_def: Optional[ArmLockDef] = None  # handle to the Box2D world
 
         self.fsmm = FiniteStateMachineManager(
             scenario=self,

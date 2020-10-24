@@ -1,6 +1,8 @@
+from openlock.envs.world_defs.openlock_def import ArmLockDef
+from typing import Optional
 from openlock.finite_state_machine import FiniteStateMachineManager
-from openlock.scenarios.scenario import Scenario
 from openlock.logger_env import ActionLog
+from openlock.scenario import Scenario
 
 
 class CommonEffect4Scenario(Scenario):
@@ -134,7 +136,9 @@ class CommonEffect4Scenario(Scenario):
         """
         super(CommonEffect4Scenario, self).update_state_machine(action)
 
-    def init_scenario_env(self, world_def=None, effect_probabilities=None):
+    def init_scenario_env(
+        self, world_def: Optional[ArmLockDef] = None, effect_probabilities=None
+    ):
         """
         initializes the scenario-specific components of the box2d world (e.g. levers)
         :return:

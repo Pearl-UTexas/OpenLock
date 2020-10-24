@@ -2,8 +2,9 @@ import copy
 import re
 import time
 from glob import glob
+from typing import Optional
 
-import gym
+import gym  # type: ignore
 import numpy as np
 import openlock.common as common
 from Box2D import b2Distance, b2RayCastInput, b2RayCastOutput
@@ -349,7 +350,7 @@ class OpenLockEnv(gym.Env):
         self.use_physics = True
         self.effect_probabilities = None
 
-        self.world_def = None
+        self.world_def: Optional[ArmLockDef] = None
 
         self.states = []
         self.config_to_idx = dict()
@@ -706,7 +707,7 @@ class OpenLockEnv(gym.Env):
                 action_map_role_external[str(solution_action)]
                 for solution_action in solution
             ]
-            for solution in self.scenario.solutions
+            for solution in self.scenario.SOLUTIONS
         ]
 
         self.cur_trial = TrialLog(
@@ -716,7 +717,7 @@ class OpenLockEnv(gym.Env):
         if not multiproc:
             print(
                 "INFO: New trial {}. There are {} unique solutions remaining.".format(
-                    trial_selected, len(self.scenario.solutions)
+                    trial_selected, len(self.scenario.SOLUTIONS)
                 )
             )
 
@@ -891,7 +892,7 @@ class OpenLockEnv(gym.Env):
     def update_state_machine(self, action=None):
         self.scenario.update_state_machine(action)
 
-    def init_world_def(self):
+    def init_world_def(self) -> ArmLockDef:
         self.init_inverse_kine()
         return ArmLockDef(
             self.invkine.kinematic_chain,

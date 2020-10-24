@@ -1,3 +1,5 @@
+from typing import Optional
+from openlock.envs.world_defs.openlock_def import ArmLockDef
 import openlock.common as common
 from openlock.finite_state_machine import FiniteStateMachineManager
 from openlock.settings_trial import LEVER_CONFIGS
@@ -26,7 +28,7 @@ class MultiLockScenario(object):
     )
 
     def __init__(self):
-        self.world_def = None  # handle to the Box2D world
+        self.world_def: Optional[ArmLockDef] = None  # handle to the Box2D world
 
         self.fsmm = FiniteStateMachineManager(
             scenario=self,

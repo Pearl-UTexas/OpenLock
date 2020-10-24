@@ -2,11 +2,15 @@ from __future__ import annotations
 
 import logging
 from itertools import product
-from typing import Dict, List, Sequence
+from typing import TYPE_CHECKING, Dict, List, Sequence
 
 from transitions import Machine  # type: ignore
 
-from openlock.scenarios.scenario import Scenario
+if TYPE_CHECKING:
+    from openlock.scenario import Scenario
+
+# TODO(joschnei): I hate that everything is a string. I don't know if transitions requires it like
+# that, but it makes typing impossible because *everything is a string*.
 
 
 def cartesian_product(*lists: Sequence[str]) -> List[str]:
