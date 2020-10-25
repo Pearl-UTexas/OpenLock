@@ -1,5 +1,6 @@
-from openlock.envs.world_defs.openlock_def import ArmLockDef
 from typing import Optional
+
+from openlock.envs.world_defs.openlock_def import ArmLockDef
 from openlock.finite_state_machine import FiniteStateMachineManager
 from openlock.logger_env import ActionLog
 from openlock.scenario import Scenario
@@ -7,28 +8,28 @@ from openlock.scenario import Scenario
 
 class CommonEffect4Scenario(Scenario):
 
-    name = "CE4"
+    NAME = "CE4"
 
-    observable_states = [
+    OBSERVABLE_STATES = [
         "pulled,",
         "pushed,",
     ]  # '+' -> locked/pulled, '-' -> unlocked/pushed
     # TODO(mjedmonds): make names between obj_map in env consistent with names in FSM (extra ':' in FSM)
-    observable_vars = ["l0:", "l1:", "l2:", "l3:"]
-    observable_initial_state = "l0:pulled,l1:pulled,l2:pulled,l3:pulled,"
+    OBSERVABLE_VARS = ["l0:", "l1:", "l2:", "l3:"]
+    OBSERVABLE_INITIAL_STATE = "l0:pulled,l1:pulled,l2:pulled,l3:pulled,"
 
     latent_states = ["unlocked,", "locked,"]  # '+' -> open, '-' -> closed
-    latent_vars = ["door:"]
+    LATENT_VARS = ["door:"]
     latent_initial_state = "door:locked,"
 
     actions = (
         ["nothing"]
-        + ["pull_{}".format(lock) for lock in observable_vars]
-        + ["push_{}".format(lock) for lock in observable_vars]
+        + ["pull_{}".format(lock) for lock in OBSERVABLE_VARS]
+        + ["push_{}".format(lock) for lock in OBSERVABLE_VARS]
     )
 
     # lists of actions that represent solution sequences
-    solutions = [
+    SOLUTIONS = [
         [
             ActionLog("push_l1", None),
             ActionLog("push_l0", None),
@@ -51,11 +52,11 @@ class CommonEffect4Scenario(Scenario):
 
         self.fsmm = FiniteStateMachineManager(
             scenario=self,
-            o_states=self.observable_states,
-            o_vars=self.observable_vars,
-            o_initial=self.observable_initial_state,
+            o_states=self.OBSERVABLE_STATES,
+            o_vars=self.OBSERVABLE_VARS,
+            o_initial=self.OBSERVABLE_INITIAL_STATE,
             l_states=self.latent_states,
-            l_vars=self.latent_vars,
+            l_vars=self.LATENT_VARS,
             l_initial=self.latent_initial_state,
             actions=self.actions,
         )

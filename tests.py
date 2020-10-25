@@ -62,7 +62,7 @@ def test_scenario(agent, scenario_name, trials_to_verify):
             attempt_limit=5,
             specified_trial=trial,
         )
-        solutions = agent.env.scenario.solutions
+        solutions = agent.env.scenario.SOLUTIONS
 
         for solution in solutions:
             agent.env.reset()

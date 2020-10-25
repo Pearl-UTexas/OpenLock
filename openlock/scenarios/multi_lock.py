@@ -1,6 +1,7 @@
 from typing import Optional
-from openlock.envs.world_defs.openlock_def import ArmLockDef
+
 import openlock.common as common
+from openlock.envs.world_defs.openlock_def import ArmLockDef
 from openlock.finite_state_machine import FiniteStateMachineManager
 from openlock.settings_trial import LEVER_CONFIGS
 
@@ -9,22 +10,22 @@ class MultiLockScenario(object):
 
     name = "multi-lock"
 
-    observable_states = [
+    OBSERVABLE_STATES = [
         "pulled,",
         "pushed,",
     ]  # '+' -> locked/pulled, '-' -> unlocked/pushed
     # TODO(mjedmonds): make names between obj_map in env consistent with names in FSM (extra ':' in FSM)
-    observable_vars = ["l0:", "l1:", "l2:"]
-    observable_initial_state = "l0:pulled,l1:pulled,l2:pushed,"
+    OBSERVABLE_VARS = ["l0:", "l1:", "l2:"]
+    OBSERVABLE_INITIAL_STATE = "l0:pulled,l1:pulled,l2:pushed,"
 
-    latent_states = ["unlocked,", "locked,"]  # '+' -> open, '-' -> closed
+    OBSERVABLE_INITIAL_STATE = ["unlocked,", "locked,"]  # '+' -> open, '-' -> closed
     latent_vars = ["door:"]
     latent_initial_state = "door:locked,"
 
     actions = (
         ["nothing"]
-        + ["pull_{}".format(lock) for lock in observable_vars]
-        + ["push_{}".format(lock) for lock in observable_vars]
+        + ["pull_{}".format(lock) for lock in OBSERVABLE_VARS]
+        + ["push_{}".format(lock) for lock in OBSERVABLE_VARS]
     )
 
     def __init__(self):

@@ -782,7 +782,7 @@ class OpenLockEnv(gym.Env):
 
     def _set_scenario(self, scenario_name):
         # update scenario if needed
-        if self.scenario is None or scenario_name is not self.scenario.name:
+        if self.scenario is None or scenario_name is not self.scenario.NAME:
             scenario = select_scenario(scenario_name, use_physics=self.use_physics)
             self.scenario = scenario
 

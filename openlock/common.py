@@ -1,12 +1,15 @@
+from __future__ import annotations
+
 import copy
 from collections import namedtuple
-from typing import Dict, Optional
+from typing import TYPE_CHECKING, Dict, Optional
 
 import numpy as np
 from Box2D import *
 from shapely.geometry import Point, Polygon
 
-from openlock.envs.world_defs.openlock_def import ArmLockDef
+if TYPE_CHECKING:
+    from openlock.envs.world_defs.openlock_def import ArmLockDef
 
 ENTITY_STATES = {
     "LEVER_PUSHED": 0,

@@ -1,4 +1,5 @@
 from typing import Optional
+
 from openlock.envs.world_defs.openlock_def import ArmLockDef
 from openlock.finite_state_machine import FiniteStateMachineManager
 from openlock.logger_env import ActionLog
@@ -9,22 +10,22 @@ class TwoStepTestingScenario(Scenario):
 
     name = "TwoStepTestingScenario"
 
-    observable_states = [
+    OBSERVABLE_STATES = [
         "pulled,",
         "pushed,",
     ]  # '+' -> locked/pulled, '-' -> unlocked/pushed
     # TODO(mjedmonds): make names between obj_map in env consistent with names in FSM (extra ':' in FSM)
-    observable_vars = ["l0:", "l1:"]
-    observable_initial_state = "l0:pulled,l1:pulled,"
+    OBSERVABLE_VARS = ["l0:", "l1:"]
+    OBSERVABLE_INITIAL_STATE = "l0:pulled,l1:pulled,"
 
-    latent_states = ["unlocked,", "locked,"]  # '+' -> open, '-' -> closed
+    OBSERVABLE_INITIAL_STATE = ["unlocked,", "locked,"]  # '+' -> open, '-' -> closed
     latent_vars = ["door:"]
     latent_initial_state = "door:locked,"
 
     actions = (
         ["nothing"]
-        + ["pull_{}".format(lock) for lock in observable_vars]
-        + ["push_{}".format(lock) for lock in observable_vars]
+        + ["pull_{}".format(lock) for lock in OBSERVABLE_VARS]
+        + ["push_{}".format(lock) for lock in OBSERVABLE_VARS]
     )
 
     # lists of actions that represent solution sequences

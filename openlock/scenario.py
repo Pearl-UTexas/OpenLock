@@ -138,7 +138,7 @@ class Scenario:
 
         :return: Nothing
         """
-        for door in self.latent_vars:
+        for door in self.LATENT_VARS:
             # TODO(mjedmonds): only supports one door
             self.fsmm.latent_fsm.machine.add_transition(
                 f"lock_{door}".format(), "door:locked,", "door:locked,"
@@ -170,7 +170,7 @@ class Scenario:
                 self.fsmm.latent_fsm.trigger(f"unlock_{door}")
         else:
             # TODO(mjedmonds): currently this will lock all doors, need to make it so each door has it's own connection to observable state
-            for door in self.latent_vars:
+            for door in self.LATENT_VARS:
                 if (
                     self.fsmm.extract_entity_state(self.fsmm.latent_fsm.state, door)
                     != "locked,"
