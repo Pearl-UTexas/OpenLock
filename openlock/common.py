@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import copy
 from collections import namedtuple
-from typing import TYPE_CHECKING, Dict, Optional
+from typing import TYPE_CHECKING, Any, Dict, NamedTuple, Optional
 
 import numpy as np
 from Box2D import *
@@ -75,11 +75,16 @@ class ObjectPositionEnum:
     )
 
 
-LeverConfig = namedtuple(
-    "lever_config", "LeverPosition LeverRoleEnum opt_params"
-)  # role should be an enum indicating which lever this
+class LeverConfig(NamedTuple):
+    LeverPosition: ObjectPosition
+    LeverRoleEnum: LeverRoleEnum
+    opt_params: Dict
 
-Color = namedtuple("Color", "r g b")
+
+class Color(NamedTuple):
+    r: float
+    g: float
+    b: float
 
 
 GREY = Color(0.6, 0.6, 0.6)

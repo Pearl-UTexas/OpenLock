@@ -47,7 +47,6 @@ class Scenario:
 
         num_inactive = 0  # give inactive levers a unique name
         for lever_config in self.lever_configs:
-            # TODO(joschnei): Add types to LeverConfig
             position, role, opt_params = lever_config
             # give unique names to every inactive
             if role == "inactive":
