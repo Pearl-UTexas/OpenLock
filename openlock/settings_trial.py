@@ -349,10 +349,20 @@ def get_trial(scenario_name, completed_trials=None):
     if completed_trials is None:
         completed_trials = []
     # select a random trial and add it to the scenario
-    if scenario_name == "CE3" or scenario_name == "CC3" or scenario_name == "CC3D":
+    if (
+        scenario_name == "CE3"
+        or scenario_name == "CC3"
+        or scenario_name == "CC3D"
+        or scenario_name == "CE3D"
+    ):
         # trials 1-6 have 3 levers for CC3/CE3
         trial, configs = select_random_trial(completed_trials, THREE_LEVER_TRIALS)
-    elif scenario_name == "CE4" or scenario_name == "CC4":
+    elif (
+        scenario_name == "CE4"
+        or scenario_name == "CC4"
+        or scenario_name == "CC4D"
+        or scenario_name == "CE4D"
+    ):
         # trials 7-11 have 4 levers for CC4/CE4
         trial, configs = select_random_trial(completed_trials, FOUR_LEVER_TRIALS)
     elif scenario_name == "CE3_simplified" or scenario_name == "CC3_simplified":

@@ -61,6 +61,7 @@ class NoFsmScenario(ScenarioInterface):
     _locked: Dict[str, bool]
     _pushed: Dict[str, bool]
     _timers: Dict[str, int]
+    _effect_probabilities: Dict[str, float]
 
     _UNLOCKS: Dict[str, Sequence[Tuple[int, str]]]
 
@@ -97,12 +98,15 @@ class NoFsmScenario(ScenarioInterface):
                 color = COLORS["active"]
 
             if all(name != lever.name for lever in self.levers):
+                # We have to hack in effect probabilities here because failing an action causes
+                # execute_fsm_action not to be called, meaning our timers don't tick.
+                # So all actions succeed always.
                 lever = Lever(
                     name=name,
                     position=position,
                     color=color,
                     opt_params=opt_params,
-                    effect_probability=self._active_effect_probability,
+                    effect_probability=1.0,
                 )
                 self.levers.append(lever)
                 if name not in self._pushed.keys():
@@ -120,22 +124,14 @@ class NoFsmScenario(ScenarioInterface):
         
         world_def is ignored. We will never use_physics.
         """
-        # TODO(joschnei): Probabily won't fix this, but why do we pass effect_probabilities here
-        # instead of in set_lever_configs
         for lever in self.levers:
-            if (
-                effect_probabilities is not None
-                and lever.name in effect_probabilities.keys()
-            ):
-                lever.effect_probability = effect_probabilities[lever.name]
             self.obj_map[lever.name] = lever
 
-        door_effect_probability = (
-            effect_probabilities["door"]
-            if effect_probabilities is not None
-            and "door" in effect_probabilities.keys()
-            else self._active_effect_probability
+        # Effect probabilties handled internally so execute_fsm_action is always called.
+        self._effect_probabilities = (
+            effect_probabilities if effect_probabilities is not None else dict()
         )
+
         self.obj_map["door"] = Door(
             world_def=None,
             name="door",
@@ -143,9 +139,9 @@ class NoFsmScenario(ScenarioInterface):
             color=COLORS["active"],
             width=DOOR_WIDTH,
             length=DOOR_LENGTH,
-            effect_probability=door_effect_probability,
+            effect_probability=1.0,
         )
-        # TODO(joschnei): Not sure what this is for, or if its necessary.
+
         self.obj_map["door_lock"] = "door_lock"
 
     def _unlock(self) -> None:
@@ -182,10 +178,16 @@ class NoFsmScenario(ScenarioInterface):
         push = action.name == "push"
 
         if not self._locked[target] and self._pushed[target] != push:
-            self._pushed[target] = not self._pushed[target]
+            fail_prob = (
+                self._effect_probabilities[target]
+                if target in self._effect_probabilities.keys()
+                else self._active_effect_probability
+            )
+            if np.random.random() <= fail_prob:
+                self._pushed[target] = not self._pushed[target]
 
-            if target in self._UNLOCKS.keys():
-                self._add_timers(self._UNLOCKS[target])
+                if target in self._UNLOCKS.keys():
+                    self._add_timers(self._UNLOCKS[target])
 
     def update_state_machine(self, action: Optional[str] = None) -> None:
         """Does nothing, as we don't use physics"""
@@ -356,7 +358,7 @@ class Scenario(ScenarioInterface):
         # is true?
         if observable_state in self.door_unlock_criteria:
             # TODO(mjedmonds): currently this will unlock all doors, need to make it so each door has it's own connection to observable state
-            for door in self.latent_vars:
+            for door in self.LATENT_VARS:
                 self.fsmm.latent_fsm.trigger(f"unlock_{door}")
         else:
             # TODO(mjedmonds): currently this will lock all doors, need to make it so each door has it's own connection to observable state

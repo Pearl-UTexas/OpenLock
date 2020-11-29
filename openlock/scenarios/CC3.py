@@ -72,7 +72,19 @@ class CommonCause3Scenario(Scenario):
 
         # add unlock/lock transition for every lock
         for lock in self.fsmm.observable_fsm.vars:
-            if lock == "l1:" or lock == "l2:":
+            if lock == "l2:":
+                pulled = [
+                    s
+                    for s in self.fsmm.observable_fsm.state_permutations
+                    if lock + "pulled," in s and "l0:pushed," in s
+                ]
+                pushed = [
+                    s
+                    for s in self.fsmm.observable_fsm.state_permutations
+                    if lock + "pushed," in s and "l0:pushed," in s
+                ]
+                super(CommonCause3Scenario, self).add_no_ops(lock, pushed, pulled)
+            elif lock == "l1:":
                 pulled = [
                     s
                     for s in self.fsmm.observable_fsm.state_permutations
@@ -165,15 +177,20 @@ class CommonCause3Scenario(Scenario):
         updates observable objects in the Box2D environment based on the observable state of the finite state machine
         """
         observable_states = self.fsmm.get_observable_states()
-        for observable_var in observable_states.keys():
+        for observable_var in list(observable_states.keys()):
             # ---------------------------------------------------------------
             # add code to change part of the environment based on the state of an observable variable here
             # ---------------------------------------------------------------
-            if observable_var == "l1:" or observable_var == "l2:":
-                var = observable_var[:-1]  # Strip colon
-                # l1 and l2 unlock if l0 is pushed
+            if observable_var == "l2:":
+                # l2 unlocks if l0 is pushed
                 if "l0:pushed," in self.fsmm.observable_fsm.state:
-                    self.obj_map[var].unlock()
+                    self.obj_map["l2"].unlock()
                 else:
-                    self.obj_map[var].lock()
+                    self.obj_map["l2"].lock()
+            if observable_var == "l1:":
+                # l1 unlocks if l0 is pushed
+                if "l0:pushed," in self.fsmm.observable_fsm.state:
+                    self.obj_map["l1"].unlock()
+                else:
+                    self.obj_map["l1"].lock()
 

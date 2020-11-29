@@ -3,8 +3,11 @@ from random import randint
 from openlock.scenarios.CC3 import CommonCause3Scenario
 from openlock.scenarios.CC3D import CommonCause3DelayScenario
 from openlock.scenarios.CC4 import CommonCause4Scenario
+from openlock.scenarios.CC4D import CommonCause4DelayScenario
 from openlock.scenarios.CE3 import CommonEffect3Scenario
+from openlock.scenarios.CE3D import CommonEffect3DelayScenario
 from openlock.scenarios.CE4 import CommonEffect4Scenario
+from openlock.scenarios.CE4D import CommonEffect4DelayScenario
 from openlock.scenarios.multi_lock import MultiLockScenario
 from openlock.scenarios.two_step_testing_scenario import TwoStepTestingScenario
 
@@ -19,6 +22,12 @@ def select_scenario(scenario_name, use_physics=True):
         scenario_selected = CommonCause3Scenario(use_physics=use_physics)
     elif scenario_name == "CC3D":
         scenario_selected = CommonCause3DelayScenario()
+    elif scenario_name == "CC4D":
+        scenario_selected = CommonCause4DelayScenario()
+    elif scenario_name == "CE3D":
+        scenario_selected = CommonEffect3DelayScenario()
+    elif scenario_name == "CE4D":
+        scenario_selected = CommonEffect4DelayScenario()
     elif scenario_name == "CE4":
         scenario_selected = CommonEffect4Scenario(use_physics=use_physics)
     elif scenario_name == "CC4":
