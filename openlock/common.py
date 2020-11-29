@@ -77,7 +77,7 @@ class ObjectPositionEnum:
 
 class LeverConfig(NamedTuple):
     LeverPosition: ObjectPosition
-    LeverRoleEnum: LeverRoleEnum
+    LeverRole: LeverRoleEnum
     opt_params: Dict
 
 
