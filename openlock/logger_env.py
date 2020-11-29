@@ -38,10 +38,12 @@ class ActionLog(object):
         :param other: ActionLog object to compare this one with.
         :return: True if names are the same, False otherwise.
         """
+        if self.name == "*":
+            return True
         if isinstance(other, ActionLog):
-            return self.name == other.name
+            return self.name == other.name or other.name == "*"
         elif isinstance(other, str):
-            return self.name == other
+            return self.name == other or other == "*"
         else:
             raise TypeError("Unexpected object for ActionLog() equality operator")
 

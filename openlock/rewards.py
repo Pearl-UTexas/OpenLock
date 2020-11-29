@@ -23,7 +23,8 @@ class RewardStrategy(object):
             # get the index of cur_action_seq in solutions, if none, return -1
             for ind in range(len(solutions)):
                 comparison = [
-                    solutions[ind][i] == action_seq[i] for i in range(len(action_seq))
+                    solutions[ind][i] == action_seq[i]
+                    for i in range(min(len(solutions[ind]), len(action_seq)))
                 ]
                 if all(comparison):
                     return ind

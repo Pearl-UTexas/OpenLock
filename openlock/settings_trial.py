@@ -1,14 +1,14 @@
-import numpy as np
 import re
 
+import numpy as np
+
 from openlock.common import (
-    TwoDConfig,
+    LOCK_REGEX_STR,
     LeverConfig,
     LeverRoleEnum,
     ObjectPositionEnum,
-    LOCK_REGEX_STR,
+    TwoDConfig,
 )
-
 
 NUM_LEVERS_IN_HUMAN_DATA = 7
 
@@ -349,7 +349,7 @@ def get_trial(scenario_name, completed_trials=None):
     if completed_trials is None:
         completed_trials = []
     # select a random trial and add it to the scenario
-    if scenario_name == "CE3" or scenario_name == "CC3":
+    if scenario_name == "CE3" or scenario_name == "CC3" or scenario_name == "CC3D":
         # trials 1-6 have 3 levers for CC3/CE3
         trial, configs = select_random_trial(completed_trials, THREE_LEVER_TRIALS)
     elif scenario_name == "CE4" or scenario_name == "CC4":

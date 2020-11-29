@@ -303,7 +303,7 @@ class ObservationSpace:
 
 class OpenLockEnv(gym.Env):
     # Set this in SOME subclasses
-    metadata = {"render.modes": ["human"]}  # TODO what does this do?
+    metadata = {"render.modes": ["human"]}
 
     def __init__(self):
         self.viewer = None
@@ -705,6 +705,8 @@ class OpenLockEnv(gym.Env):
         external_solutions = [
             [
                 action_map_role_external[str(solution_action)]
+                if str(solution_action) in action_map_external_role.keys()
+                else str(solution_action)
                 for solution_action in solution
             ]
             for solution in self.scenario.SOLUTIONS

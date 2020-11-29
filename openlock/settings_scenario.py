@@ -1,12 +1,12 @@
 from random import randint
 
-from openlock.scenarios.multi_lock import MultiLockScenario
-from openlock.scenarios.CE3 import CommonEffect3Scenario
 from openlock.scenarios.CC3 import CommonCause3Scenario
-from openlock.scenarios.CE4 import CommonEffect4Scenario
+from openlock.scenarios.CC3D import CommonCause3DelayScenario
 from openlock.scenarios.CC4 import CommonCause4Scenario
+from openlock.scenarios.CE3 import CommonEffect3Scenario
+from openlock.scenarios.CE4 import CommonEffect4Scenario
+from openlock.scenarios.multi_lock import MultiLockScenario
 from openlock.scenarios.two_step_testing_scenario import TwoStepTestingScenario
-
 
 TESTING_SCENARIOS = [("CE3", "CE4"), ("CE3", "CC4"), ("CC3", "CE4"), ("CC3", "CC4")]
 
@@ -17,6 +17,8 @@ def select_scenario(scenario_name, use_physics=True):
         scenario_selected = CommonEffect3Scenario(use_physics=use_physics)
     elif scenario_name == "CC3" or scenario_name == "CC3_simplified":
         scenario_selected = CommonCause3Scenario(use_physics=use_physics)
+    elif scenario_name == "CC3D":
+        scenario_selected = CommonCause3DelayScenario()
     elif scenario_name == "CE4":
         scenario_selected = CommonEffect4Scenario(use_physics=use_physics)
     elif scenario_name == "CC4":

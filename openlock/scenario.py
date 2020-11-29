@@ -3,18 +3,209 @@ Outlines the structure and causal_classes functionality across scenarios
 """
 from __future__ import annotations
 
+import logging
 import re
-from typing import Dict, Optional, Sequence, Tuple, Union
+from typing import Dict, List, Optional, Sequence, Tuple, Union
 
 import numpy as np
 
 import openlock.common as common
-from openlock.common import LeverConfig
+from openlock.common import (
+    COLORS,
+    DOOR_LENGTH,
+    DOOR_WIDTH,
+    Action,
+    Door,
+    Lever,
+    LeverConfig,
+    ObjectPositionEnum,
+)
 from openlock.envs.world_defs.openlock_def import ArmLockDef
 from openlock.finite_state_machine import FiniteStateMachineManager
 
 
-class Scenario:
+class ScenarioInterface:
+    levers: List[Lever]
+    obj_map: Dict
+
+    def set_lever_configs(self, lever_configs: Sequence[LeverConfig]) -> None:
+        """ Populates the levers list from a lever_configs object. """
+        raise NotImplementedError()
+
+    def init_scenario_env(
+        self,
+        world_def: Optional[ArmLockDef] = None,
+        effect_probabilities: Optional[Dict[str, float]] = None,
+    ) -> None:
+        """ Populates the object map. """
+        raise NotImplementedError
+
+    def get_state(self) -> Dict[str, Dict[str, Union[str, np.int8]]]:
+        """ Returns dictionary containing object and internal states. """
+        raise NotImplementedError()
+
+    def reset(self) -> None:
+        raise NotImplementedError
+
+    def update_state_machine(self, action: Optional[str] = None) -> None:
+        raise NotImplementedError
+
+    def execute_fsm_action(self, action: Action) -> None:
+        """ Executes an action. Name for legacy reasons, even if there isn't an fsm anymore. """
+        raise NotImplementedError
+
+
+class NoFsmScenario(ScenarioInterface):
+    # TODO(joschnei): It might be better to have one internal object representation
+    # with .locked, .pushed, and .unlocks fields.
+    _locked: Dict[str, bool]
+    _pushed: Dict[str, bool]
+    _timers: Dict[str, int]
+
+    _UNLOCKS: Dict[str, Sequence[Tuple[int, str]]]
+
+    _INIT_LOCKED: Dict[str, bool]
+    _INIT_PUSHED: Dict[str, bool]
+
+    def __init__(
+        self, use_physics=False, active_effect_probability: float = 1.0,
+    ) -> None:
+        # use_phsyics always ignored
+        self.levers = list()
+        self.obj_map = dict()
+        assert active_effect_probability >= 0.0 and active_effect_probability <= 1.0
+        self._active_effect_probability = active_effect_probability
+
+        self.reset()
+
+    def reset(self) -> None:
+        self._locked = dict(self._INIT_LOCKED)
+        self._pushed = dict(self._INIT_PUSHED)
+        self._timers = dict()
+
+    def set_lever_configs(self, lever_configs: Sequence[LeverConfig]) -> None:
+        """This needs to be idempotent, as it gets called multiple times."""
+        num_inactive = 0
+        # TODO(joschnei): Why is lever_configs a dict if we don't use the first value ever?
+        for position, role, opt_params in lever_configs:
+            if role == "inactive":
+                name = f"inactive_{num_inactive}"
+                num_inactive += 1
+                color = COLORS["inactive"]
+            else:
+                name = str(role)
+                color = COLORS["active"]
+
+            if all(name != lever.name for lever in self.levers):
+                lever = Lever(
+                    name=name,
+                    position=position,
+                    color=color,
+                    opt_params=opt_params,
+                    effect_probability=self._active_effect_probability,
+                )
+                self.levers.append(lever)
+                if name not in self._pushed.keys():
+                    self._pushed[name] = False
+                    self._INIT_PUSHED[name] = False
+                    self._locked[name] = True
+                    self._INIT_LOCKED[name] = True
+
+    def init_scenario_env(
+        self,
+        world_def: Optional[ArmLockDef] = None,
+        effect_probabilities: Optional[Dict[str, float]] = None,
+    ) -> None:
+        """
+        
+        world_def is ignored. We will never use_physics.
+        """
+        # TODO(joschnei): Probabily won't fix this, but why do we pass effect_probabilities here
+        # instead of in set_lever_configs
+        for lever in self.levers:
+            if (
+                effect_probabilities is not None
+                and lever.name in effect_probabilities.keys()
+            ):
+                lever.effect_probability = effect_probabilities[lever.name]
+            self.obj_map[lever.name] = lever
+
+        door_effect_probability = (
+            effect_probabilities["door"]
+            if effect_probabilities is not None
+            and "door" in effect_probabilities.keys()
+            else self._active_effect_probability
+        )
+        self.obj_map["door"] = Door(
+            world_def=None,
+            name="door",
+            position=ObjectPositionEnum.DOOR,
+            color=COLORS["active"],
+            width=DOOR_WIDTH,
+            length=DOOR_LENGTH,
+            effect_probability=door_effect_probability,
+        )
+        # TODO(joschnei): Not sure what this is for, or if its necessary.
+        self.obj_map["door_lock"] = "door_lock"
+
+    def _unlock(self) -> None:
+        for target, time in list(self._timers.items()):
+            time = time - 1
+            if time <= 0:
+                self._locked[target] = False
+                # This might fuck up our iterator, if so, just copy the items to a new list.
+                del self._timers[target]
+            else:
+                self._timers[target] = time
+
+    def _add_timers(self, timers: Sequence[Tuple[int, str]]) -> None:
+        current_targets = list(self._timers.keys())
+        for target, delay in timers:
+            if target in current_targets:
+                self._timers[target] = min(delay, self._timers[target])
+            else:
+                self._timers[target] = delay
+
+    def execute_fsm_action(self, action: Action) -> None:
+        logging.debug("Entered execute_fsm_action")
+        # Decrement all timers first, so unlocks that happen immediately have a delay of 1.
+        self._unlock()
+
+        target = action.obj
+        if target not in self.obj_map.keys():
+            raise ValueError(f"Action target {target} not in object map.")
+        if action.name not in ("push", "pull"):
+            raise ValueError(
+                f"Action {action.name} not a valid action. Action name must be either 'push' or 'pull'."
+            )
+
+        push = action.name == "push"
+
+        if not self._locked[target] and self._pushed[target] != push:
+            self._pushed[target] = not self._pushed[target]
+
+            if target in self._UNLOCKS.keys():
+                self._add_timers(self._UNLOCKS[target])
+
+    def update_state_machine(self, action: Optional[str] = None) -> None:
+        """Does nothing, as we don't use physics"""
+        pass
+
+    def get_state(self) -> Dict[str, Dict[str, Union[str, np.int8]]]:
+        # For backwards compatibility, the observable state is
+        # The lever pushed/pulled decisions
+        # Door open/closed
+        # Door locked/unlocked
+        # In our case, door open/closed is handled by self._pushed.
+        obj_states: Dict[str, Union[str, np.int8]] = {
+            key: np.int8(value) for key, value in self._pushed.items()
+        }
+        obj_states["door_lock"] = np.int8(self._locked["door"])
+
+        return {"OBJ_STATES": obj_states}
+
+
+class Scenario(ScenarioInterface):
     """
     Parent class for scenarios. Outline the structure and causal_classes functionality across scenarios.
     Manage the specific scenario currently in use. Encodes logic and solutions into the environment.
@@ -35,7 +226,7 @@ class Scenario:
         self.door_state = common.ENTITY_STATES["DOOR_CLOSED"]
         self.obj_map = dict()
 
-    def set_lever_configs(self, lever_configs: Dict[int, LeverConfig]) -> None:
+    def set_lever_configs(self, lever_configs: Sequence[LeverConfig]) -> None:
         """
         Set self.lever_configs and self.levers. Give each inactive lever a unique name.
 
@@ -266,7 +457,7 @@ class Scenario:
             if action is not None and action.name is "push" and action.obj == "door":
                 self.push_door()
 
-    def execute_fsm_action(self, action: str) -> None:
+    def execute_fsm_action(self, action: Action) -> None:
         """
         Run FSM action (push/pull).
 
