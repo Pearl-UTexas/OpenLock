@@ -19,9 +19,7 @@ from openlock.kine import (
     generate_five_arm,
 )
 from openlock.logger_env import ActionLog, TrialLog
-from openlock.rewards import (
-    RewardStrategy,
-)  # determine_reward, REWARD_IMMOVABLE, REWARD_OPEN
+from openlock.rewards import RewardStrategy
 from openlock.settings_render import BOX2D_SETTINGS, ENV_SETTINGS, RENDER_SETTINGS
 from openlock.settings_scenario import select_scenario
 from openlock.settings_trial import get_trial, select_trial
@@ -702,12 +700,10 @@ class OpenLockEnv(gym.Env):
             action_map_role_external,
         ) = ActionSpace.create_action_space(self, obj_map)
 
-        # NOTE: I added two lines here that used to cause key errors but now silently just don't
-        # remap the actions. This might be a difference?
         external_solutions = [
             [
                 action_map_role_external[str(solution_action)]
-                if str(solution_action) in action_map_external_role.keys()
+                if str(solution_action) in action_map_role_external.keys()
                 else str(solution_action)
                 for solution_action in solution
             ]
