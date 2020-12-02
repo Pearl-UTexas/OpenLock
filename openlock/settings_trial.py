@@ -66,6 +66,46 @@ PARAMS = {
         "test_attempt_limit": ATTEMPT_LIMIT,
         "test_action_limit": ACTION_LIMIT,
     },
+    "CE3D-CE4D": {
+        "train_num_trials": 6,
+        "train_scenario_name": "CE3D",
+        "train_attempt_limit": ATTEMPT_LIMIT,
+        "train_action_limit": 4,
+        "test_num_trials": 1,
+        "test_scenario_name": "CE4D",
+        "test_attempt_limit": ATTEMPT_LIMIT,
+        "test_action_limit": 4,
+    },
+    "CE3D-CC4D": {
+        "train_num_trials": 6,
+        "train_scenario_name": "CE3D",
+        "train_attempt_limit": ATTEMPT_LIMIT,
+        "train_action_limit": 4,
+        "test_num_trials": 1,
+        "test_scenario_name": "CC4D",
+        "test_attempt_limit": ATTEMPT_LIMIT,
+        "test_action_limit": 4,
+    },
+    "CC3D-CE4D": {
+        "train_num_trials": 6,
+        "train_scenario_name": "CC3D",
+        "train_attempt_limit": ATTEMPT_LIMIT,
+        "train_action_limit": 4,
+        "test_num_trials": 1,
+        "test_scenario_name": "CE4D",
+        "test_attempt_limit": ATTEMPT_LIMIT,
+        "test_action_limit": 4,
+    },
+    "CC3D-CC4D": {
+        "train_num_trials": 6,
+        "train_scenario_name": "CC3D",
+        "train_attempt_limit": ATTEMPT_LIMIT,
+        "train_action_limit": 4,
+        "test_num_trials": 1,
+        "test_scenario_name": "CC4D",
+        "test_attempt_limit": ATTEMPT_LIMIT,
+        "test_action_limit": 4,
+    },
     "CC4": {
         "train_num_trials": 5,
         "train_scenario_name": "CC4",
@@ -99,45 +139,6 @@ PARAMS = {
 
 # maps arbitrary indices to parameter settings strings
 IDX_TO_PARAMS = ["CE3-CE4", "CE3-CC4", "CC3-CE4", "CC3-CC4", "CE4", "CC4"]
-
-# # mapping from 2dconfigs to position indices
-# CONFIG_TO_IDX = {
-#     ObjectPositionEnum.UPPERRIGHT.config: 0,
-#     ObjectPositionEnum.UPPER.config: 1,
-#     ObjectPositionEnum.UPPERLEFT.config: 2,
-#     ObjectPositionEnum.LEFT.config: 3,
-#     ObjectPositionEnum.LOWERLEFT.config: 4,
-#     ObjectPositionEnum.LOWER.config: 5,
-#     ObjectPositionEnum.LOWERRIGHT.config: 6,
-#     ObjectPositionEnum.DOOR.config: 7,
-#     # ObjectPositionEnum.DOOR_LOCK.config:  8,
-# }
-#
-# # mapping from position indices to position names
-# IDX_TO_POSITION = {
-#     0: "UPPERRIGHT",
-#     1: "UPPER",
-#     2: "UPPERLEFT",
-#     3: "LEFT",
-#     4: "LOWERLEFT",
-#     5: "LOWER",
-#     6: "LOWERRIGHT",
-#     7: "door",
-#     # 8: 'door_lock'
-# }
-#
-# # mapping from position names to position indices
-# POSITION_TO_IDX = {
-#     "UPPERRIGHT": 0,
-#     "UPPER": 1,
-#     "UPPERLEFT": 2,
-#     "LEFT": 3,
-#     "LOWERLEFT": 4,
-#     "LOWER": 5,
-#     "LOWERRIGHT": 6,
-#     "door": 7,
-#     # 'door_lock':    8,
-# }
 
 LEVER_CONFIGS = {
     # Trial 1. l0=LeverPositionEnum.UPPERLEFT, l1=LeverPositionEnum.LOWERLEFT, l2=LeverPositionEnum.UPPERRIGHT,
