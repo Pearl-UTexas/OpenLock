@@ -75,6 +75,7 @@ PARAMS = {
         "test_scenario_name": "CE4D",
         "test_attempt_limit": ATTEMPT_LIMIT,
         "test_action_limit": 4,
+        "max_delay": 1,
     },
     "CE3D-CC4D": {
         "train_num_trials": 6,
@@ -85,6 +86,7 @@ PARAMS = {
         "test_scenario_name": "CC4D",
         "test_attempt_limit": ATTEMPT_LIMIT,
         "test_action_limit": 4,
+        "max_delay": 1,
     },
     "CC3D-CE4D": {
         "train_num_trials": 6,
@@ -95,6 +97,7 @@ PARAMS = {
         "test_scenario_name": "CE4D",
         "test_attempt_limit": ATTEMPT_LIMIT,
         "test_action_limit": 4,
+        "max_delay": 1,
     },
     "CC3D-CC4D": {
         "train_num_trials": 6,
@@ -105,6 +108,7 @@ PARAMS = {
         "test_scenario_name": "CC4D",
         "test_attempt_limit": ATTEMPT_LIMIT,
         "test_action_limit": 4,
+        "max_delay": 1,
     },
     "CC4": {
         "train_num_trials": 5,
