@@ -97,23 +97,30 @@ class NoFsmScenario(ScenarioInterface):
                 name = str(role)
                 color = COLORS["active"]
 
-            if all(name != lever.name for lever in self.levers):
-                # We have to hack in effect probabilities here because failing an action causes
-                # execute_fsm_action not to be called, meaning our timers don't tick.
-                # So all actions succeed always.
-                lever = Lever(
-                    name=name,
-                    position=position,
-                    color=color,
-                    opt_params=opt_params,
-                    effect_probability=1.0,
-                )
+            # We have to hack in effect probabilities here because failing an action causes
+            # execute_fsm_action not to be called, meaning our timers don't tick.
+            # So all actions succeed always.
+            lever = Lever(
+                name=name,
+                position=position,
+                color=color,
+                opt_params=opt_params,
+                effect_probability=1.0,
+            )
+
+            lever_idx = max(
+                [i for i, lever in enumerate(self.levers) if lever.name == name] + [-1]
+            )
+            if lever_idx == -1:
                 self.levers.append(lever)
-                if name not in self._pushed.keys():
-                    self._pushed[name] = False
-                    self._INIT_PUSHED[name] = False
-                    self._locked[name] = True
-                    self._INIT_LOCKED[name] = True
+            else:
+                self.levers[lever_idx] = lever
+
+            if name not in self._pushed.keys():
+                self._pushed[name] = False
+                self._INIT_PUSHED[name] = False
+                self._locked[name] = True
+                self._INIT_LOCKED[name] = True
 
     def init_scenario_env(
         self,

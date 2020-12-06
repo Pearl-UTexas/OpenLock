@@ -1,4 +1,5 @@
 import copy
+import logging
 import re
 import time
 from glob import glob
@@ -286,18 +287,6 @@ class ObservationSpace:
 
         return state, state_labels
 
-    def determine_solutions_remaining(self, cur_trial):
-        # TODO(mjedmonds): this does not work currently
-        raise RuntimeError("determine_solutions_remaining() is currently broken")
-        solutions = cur_trial.solutions
-        completed_solutions = cur_trial.completed_solutions
-        for i in range(len(completed_solutions)):
-            idx = solutions.index(completed_solutions[i])
-            # mark that this solution is finished
-            self.solutions_found[idx] = 1
-
-        return self.solutions_found, self.labels
-
 
 class OpenLockEnv(gym.Env):
     # Set this in SOME subclasses
@@ -374,15 +363,7 @@ class OpenLockEnv(gym.Env):
         _, lever_configs = get_trial(scenario_name)
 
         self._set_lever_configs(lever_configs)
-        self.config_to_idx = {
-            lever_configs[i].LeverPosition.config: i for i in range(len(lever_configs))
-        }
-        self.position_to_idx = {
-            lever_configs[i].LeverPosition.name: i for i in range(len(lever_configs))
-        }
-        self.idx_to_position = {
-            i: lever_configs[i].LeverPosition.name for i in range(len(lever_configs))
-        }
+
         # TODO(mjedmonds): elegantly include door; at this stage of initialization we don't have access to obj_map
         door_idx = len(self.config_to_idx.keys())
         self.config_to_idx[common.ObjectPositionEnum.DOOR.config] = door_idx
@@ -446,7 +427,6 @@ class OpenLockEnv(gym.Env):
 
         self.cur_state = self.get_state()
         # append initial observation
-        # self._print_observation(state, self.action_count)
         self._append_result(self._create_state_entry())
 
         self.update_state_machine()
@@ -524,10 +504,6 @@ class OpenLockEnv(gym.Env):
 
             if observable_action:
                 reward = self.finish_action(action)
-
-                # if 10 < self.cur_trial.cur_attempt.reward < 50:
-                #     print('reward is 20...')
-                #     reward, _ = self.reward_strategy.determine_reward(self, action, self.reward_mode)
 
             if self.determine_attempt_finished():
                 done = True
@@ -680,7 +656,10 @@ class OpenLockEnv(gym.Env):
                     scenario_name, self.completed_trials
                 )
         else:
+            logging.debug(f"specified_trial={specified_trial}")
             trial_selected, lever_configs = select_trial(specified_trial)
+
+        logging.debug(f"trial_selected={trial_selected}, lever_configs={lever_configs}")
 
         self._set_lever_configs(lever_configs)
         self.observation_space = ObservationSpace(len(self.scenario.levers))
@@ -694,7 +673,7 @@ class OpenLockEnv(gym.Env):
         )
         obj_map = self.scenario.obj_map
         (
-            action_space,
+            _,
             action_map,
             action_map_external_role,
             action_map_role_external,
@@ -751,7 +730,6 @@ class OpenLockEnv(gym.Env):
 
         # self._print_observation(self.state, self.action_count)
         self._append_result(self._create_state_entry())
-        # self.results.append(self._create_state_entry(self.state, self.action_count))
 
         # must finish action before computing reward
         self.cur_trial.cur_attempt.finish_action(self.results)
@@ -787,13 +765,25 @@ class OpenLockEnv(gym.Env):
             self.scenario = scenario
 
     def _set_lever_configs(self, lever_configs):
+        self.config_to_idx.update(
+            {
+                lever_configs[i].LeverPosition.config: i
+                for i in range(len(lever_configs))
+            }
+        )
+        self.position_to_idx.update(
+            {lever_configs[i].LeverPosition.name: i for i in range(len(lever_configs))}
+        )
+        self.idx_to_position.update(
+            {i: lever_configs[i].LeverPosition.name for i in range(len(lever_configs))}
+        )
         self.scenario.set_lever_configs(lever_configs)
 
     def _reset_results(self):
         # setup .csv headers
         self.col_label = []
         self.col_label.append("frame")
-        discrete_states, discrete_labels = self.get_discrete_state()
+        _, discrete_labels = self.get_discrete_state()
         for col_name in discrete_labels:
             self.col_label.append(col_name)
         self.col_label.append("agent")
@@ -927,16 +917,6 @@ class OpenLockEnv(gym.Env):
 
     def _append_result(self, cur_result):
         self.results.append(cur_result)
-        # if len(self.results) > 2:
-        #     prev_result = self.results[-1]
-        #     # remove frame
-        #     differences = [x != y for (x, y) in zip(prev_result[1:], cur_result[1:])]
-        #     changes = differences.count(True)
-        #     if changes > 2:
-        #         print 'WARNING: More than 2 changes between observations'
-        #     self.results.append(cur_result)
-        # else:
-        #     self.results.append(cur_result)
 
     def _create_clickable_regions(self):
         # register clickable regions
