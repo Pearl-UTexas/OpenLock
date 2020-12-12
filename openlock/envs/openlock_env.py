@@ -10,7 +10,8 @@ import numpy as np
 import openlock.common as common
 from Box2D import b2Distance, b2RayCastInput, b2RayCastOutput
 from gym.spaces import MultiDiscrete
-from openlock.box2d_renderer import Box2DRenderer
+
+# from openlock.box2d_renderer import Box2DRenderer
 from openlock.envs.world_defs.openlock_def import ArmLockDef
 from openlock.kine import (
     InverseKinematics,
@@ -384,7 +385,7 @@ class OpenLockEnv(gym.Env):
                 space.
         """
         if self.scenario is None:
-            print("WARNING: resetting environment with no scenario")
+            logging.warning("Resetting environment with no scenario")
 
         self.clock = 0
         self._seed()
@@ -410,7 +411,8 @@ class OpenLockEnv(gym.Env):
         if self.use_physics:
             # setup renderer
             if not self.viewer:
-                self.viewer = Box2DRenderer(self._action_grasp)
+                # self.viewer = Box2DRenderer(self._action_grasp)
+                pass
 
             self.viewer.reset()
 
@@ -486,7 +488,7 @@ class OpenLockEnv(gym.Env):
             if observable_action:
                 # ack is used by manager to determine if the action needs to be logged in the agent's logger
                 if self.cur_trial.cur_attempt is None:
-                    print("problem")
+                    logging.warning("No current attempt")
                 self.cur_trial.cur_attempt.add_action(str(action))
 
             # convert external action to internal action
@@ -647,10 +649,9 @@ class OpenLockEnv(gym.Env):
             )
             if trial_selected is None:
                 if not multiproc:
-                    print(
-                        "WARNING: no more trials available. Resetting completed_trials."
+                    logging.warning(
+                        f"No more trials available. Resetting completed_trials. {self.completed_trials}"
                     )
-                    print(self.completed_trials)
                 self.completed_trials = []
                 trial_selected, lever_configs = get_trial(
                     scenario_name, self.completed_trials
@@ -694,8 +695,8 @@ class OpenLockEnv(gym.Env):
         )
 
         if not multiproc:
-            print(
-                "INFO: New trial {}. There are {} unique solutions remaining.".format(
+            logging.info(
+                "New trial {}. There are {} unique solutions remaining.".format(
                     trial_selected, len(self.scenario.SOLUTIONS)
                 )
             )
@@ -912,8 +913,8 @@ class OpenLockEnv(gym.Env):
         )
 
     def _print_observation(self, state, count):
-        print(str(count) + ": " + str(state["OBJ_STATES"]))
-        print(str(count) + ": " + str(state["_FSM_STATE"]))
+        logging.info(str(count) + ": " + str(state["OBJ_STATES"]))
+        logging.info(str(count) + ": " + str(state["_FSM_STATE"]))
 
     def _append_result(self, cur_result):
         self.results.append(cur_result)
@@ -977,22 +978,22 @@ class OpenLockEnv(gym.Env):
         # continue or end trial
         if self.get_trial_success():
             if not multithreaded:
-                print("INFO: You found all of the solutions. ")
+                logging.info("You found all of the solutions. ")
             pause = True  # pause if they open the door
         elif self.attempt_count < self.attempt_limit:
             # alert user to the number of solutions remaining
             if attempt_success is True:
                 if not multithreaded:
-                    print(
-                        "INFO: You found a solution. There are {} unique solutions remaining.".format(
+                    logging.info(
+                        "You found a solution. There are {} unique solutions remaining.".format(
                             num_solutions_remaining
                         )
                     )
                 pause = True  # pause if they open the door
             else:
                 if not multithreaded and self.human_agent:
-                    print(
-                        "INFO: Ending attempt. Action limit reached. There are {} unique solutions remaining. You have {} attempts remaining.".format(
+                    logging.info(
+                        "Ending attempt. Action limit reached. There are {} unique solutions remaining. You have {} attempts remaining.".format(
                             num_solutions_remaining,
                             self.attempt_limit - self.attempt_count,
                         )
@@ -1002,8 +1003,8 @@ class OpenLockEnv(gym.Env):
                     pause = True
         else:
             if not multithreaded:
-                print(
-                    "INFO: Ending trial. Attempt limit reached. You found {} unique solutions".format(
+                logging.info(
+                    "Ending trial. Attempt limit reached. You found {} unique solutions".format(
                         len(completed_solutions)
                     )
                 )

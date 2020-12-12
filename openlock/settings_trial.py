@@ -27,88 +27,84 @@ TWO_STEP_TESTING_TRIALS = ["TwoStepTesting1"]
 
 PARAMS = {
     "CE3-CE4": {
-        "train_num_trials": 6,
         "train_scenario_name": "CE3",
-        "train_attempt_limit": ATTEMPT_LIMIT,
         "train_action_limit": ACTION_LIMIT,
         "test_num_trials": 1,
         "test_scenario_name": "CE4",
-        "test_attempt_limit": ATTEMPT_LIMIT,
         "test_action_limit": ACTION_LIMIT,
     },
     "CE3-CC4": {
-        "train_num_trials": 6,
         "train_scenario_name": "CE3",
-        "train_attempt_limit": ATTEMPT_LIMIT,
         "train_action_limit": ACTION_LIMIT,
         "test_num_trials": 1,
         "test_scenario_name": "CC4",
-        "test_attempt_limit": ATTEMPT_LIMIT,
         "test_action_limit": ACTION_LIMIT,
     },
     "CC3-CE4": {
-        "train_num_trials": 6,
         "train_scenario_name": "CC3",
-        "train_attempt_limit": ATTEMPT_LIMIT,
         "train_action_limit": ACTION_LIMIT,
         "test_num_trials": 1,
         "test_scenario_name": "CE4",
-        "test_attempt_limit": ATTEMPT_LIMIT,
         "test_action_limit": ACTION_LIMIT,
     },
     "CC3-CC4": {
-        "train_num_trials": 6,
         "train_scenario_name": "CC3",
-        "train_attempt_limit": ATTEMPT_LIMIT,
         "train_action_limit": ACTION_LIMIT,
         "test_num_trials": 1,
         "test_scenario_name": "CC4",
-        "test_attempt_limit": ATTEMPT_LIMIT,
         "test_action_limit": ACTION_LIMIT,
     },
     "CE3D-CE4D": {
-        "train_num_trials": 6,
         "train_scenario_name": "CE3D",
-        "train_attempt_limit": ATTEMPT_LIMIT,
         "train_action_limit": 4,
         "test_num_trials": 1,
         "test_scenario_name": "CE4D",
-        "test_attempt_limit": ATTEMPT_LIMIT,
         "test_action_limit": 4,
         "max_delay": 1,
     },
     "CE3D-CC4D": {
-        "train_num_trials": 6,
         "train_scenario_name": "CE3D",
-        "train_attempt_limit": ATTEMPT_LIMIT,
         "train_action_limit": 4,
         "test_num_trials": 1,
         "test_scenario_name": "CC4D",
-        "test_attempt_limit": ATTEMPT_LIMIT,
         "test_action_limit": 4,
         "max_delay": 1,
     },
     "CC3D-CE4D": {
-        "train_num_trials": 6,
         "train_scenario_name": "CC3D",
-        "train_attempt_limit": ATTEMPT_LIMIT,
         "train_action_limit": 4,
         "test_num_trials": 1,
         "test_scenario_name": "CE4D",
-        "test_attempt_limit": ATTEMPT_LIMIT,
         "test_action_limit": 4,
         "max_delay": 1,
     },
     "CC3D-CC4D": {
-        "train_num_trials": 6,
         "train_scenario_name": "CC3D",
-        "train_attempt_limit": ATTEMPT_LIMIT,
         "train_action_limit": 4,
         "test_num_trials": 1,
         "test_scenario_name": "CC4D",
-        "test_attempt_limit": ATTEMPT_LIMIT,
         "test_action_limit": 4,
         "max_delay": 1,
+    },
+    "CE3D": {
+        "train_scenario_name": "CE3D",
+        "train_action_limit": 4,
+        "test_scenario_name": None,
+    },
+    "CC3D": {
+        "train_scenario_name": "CC3D",
+        "train_action_limit": 4,
+        "test_scenario_name": None,
+    },
+    "CE4D": {
+        "train_scenario_name": "CE4D",
+        "train_action_limit": 4,
+        "test_scenario_name": None,
+    },
+    "CC4D": {
+        "train_scenario_name": "CC4D",
+        "train_action_limit": 4,
+        "test_scenario_name": None,
     },
     "CC4": {
         "train_num_trials": 5,
@@ -336,10 +332,12 @@ def select_trial(trial):
 
 
 def get_possible_trials(name):
-    if name != "CE4" and name != "CC4":
+    if "3" in name:
         return THREE_LEVER_TRIALS
-    else:
+    elif "4" in name:
         return FOUR_LEVER_TRIALS
+    else:
+        raise ValueError(f"Invalid trial name {name}")
 
 
 def get_trial(scenario_name, completed_trials=None):
