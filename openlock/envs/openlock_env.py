@@ -186,12 +186,12 @@ class ObservationSpace:
             )
         # convert internal state labels to external labels
         # TODO(mjedmonds): refactor this, this is a very brittle way of doing this mapping
-        for i in range(len(discrete_labels)):
-            if discrete_labels[i] in self.role_to_external_mapping.keys():
-                discrete_labels[i] = self.role_to_external_mapping[discrete_labels[i]]
+        for i, label in enumerate(discrete_labels):
+            if label in self.role_to_external_mapping.keys():
+                discrete_labels[i] = self.role_to_external_mapping[label]
             # active indicates color (grey = active. white = inactive) see ENTITY_STATES for values
             if discrete_labels[i].endswith("_active"):
-                base_label = discrete_labels[i].split("_", 1)[0]
+                base_label = "_".join(discrete_labels[i].split("_")[:-1])
                 if base_label in self.role_to_external_mapping.keys():
                     base_label = self.role_to_external_mapping[base_label]
                 discrete_labels[i] = base_label + "_active"
@@ -657,10 +657,7 @@ class OpenLockEnv(gym.Env):
                     scenario_name, self.completed_trials
                 )
         else:
-            logging.debug(f"specified_trial={specified_trial}")
             trial_selected, lever_configs = select_trial(specified_trial)
-
-        logging.debug(f"trial_selected={trial_selected}, lever_configs={lever_configs}")
 
         self._set_lever_configs(lever_configs)
         self.observation_space = ObservationSpace(len(self.scenario.levers))

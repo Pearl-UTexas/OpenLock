@@ -170,7 +170,6 @@ class NoFsmScenario(ScenarioInterface):
                 self._timers[target] = delay
 
     def execute_fsm_action(self, action: Action) -> None:
-        logging.debug("Entered execute_fsm_action")
         # Decrement all timers first, so unlocks that happen immediately have a delay of 1.
         self._unlock()
 
@@ -206,9 +205,12 @@ class NoFsmScenario(ScenarioInterface):
         # Door open/closed
         # Door locked/unlocked
         # In our case, door open/closed is handled by self._pushed.
+
+        # Also for legacy reasons state=1 represents pulled, and state=0 is pushed
         obj_states: Dict[str, Union[str, np.int8]] = {
-            key: np.int8(value) for key, value in self._pushed.items()
+            key: 1 - np.int8(value) for key, value in self._pushed.items()
         }
+        obj_states["door"] = 1 - obj_states["door"]
         obj_states["door_lock"] = np.int8(self._locked["door"])
 
         return {"OBJ_STATES": obj_states}
