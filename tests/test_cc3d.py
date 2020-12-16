@@ -85,9 +85,7 @@ def flatten(ll: List[List[T]]) -> List[T]:
 
 
 def test_solutions():
-    logging.basicConfig(level="DEBUG")
     for scenario in SCENARIOS:
-        logging.debug(f"Scenario={scenario}")
         env = OpenLockEnv()
         env.use_physics = False
         env.initialize_for_scenario(scenario)
@@ -103,15 +101,16 @@ def test_solutions():
             ]
         )
         for solution in solutions:
+            env = OpenLockEnv()
+            env.use_physics = False
+            env.initialize_for_scenario(scenario)
+            env.setup_trial(scenario_name=scenario, action_limit=5, attempt_limit=10)
             env.reset()
-            logging.debug("New solution")
             for action_log in solution:
                 env.step(action=log_to_action(action_log))
-                logging.debug(action_log)
-                logging.debug(env.scenario._pushed)
-                logging.debug(env.scenario._locked)
-                logging.debug(env.scenario._timers)
             assert env.get_state()["OBJ_STATES"]["door"] == 1, env.get_state()[
                 "OBJ_STATES"
             ]
+            env.finish_attempt()
+            assert len(env.get_completed_solutions()) == 1
 

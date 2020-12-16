@@ -1,11 +1,7 @@
 import copy
-import json
-import os
-import sys
 import time
-from copy import Error
+from typing import Sequence
 
-import jsonpickle
 import texttable
 
 from openlock.common import Action
@@ -231,6 +227,15 @@ class TrialLog(object):
         self.cur_attempt.action_seq = []
         self.cur_attempt.results = []
 
+    @staticmethod
+    def compare_action_sequence_strings(
+        actual: Sequence[str], solution: Sequence[str]
+    ) -> bool:
+        for actual_action, solution_action in zip(actual, solution):
+            if solution_action != "*" and actual_action != solution_action:
+                return False
+        return True
+
     def finish_attempt(self, results, action_seq=None):
         """
         Mark the current attempt as finished.
@@ -248,13 +253,20 @@ class TrialLog(object):
         completed_solutions_str = [
             [str(x) for x in solution] for solution in self.completed_solutions
         ]
+
+        solution_matches = [
+            self.compare_action_sequence_strings(action_seq_str, solution)
+            for solution in solutions_str
+        ]
+        completed_matches = [
+            self.compare_action_sequence_strings(action_seq_str, solution)
+            for solution in completed_solutions_str
+        ]
         # check to see if this attempt is a solution that has not been completed already
-        if (
-            action_seq_str in solutions_str
-            and action_seq_str not in completed_solutions_str
-        ):
+        if any(solution_matches) and not any(completed_matches):
             attempt_success = True
-            self.completed_solutions.append(self.cur_attempt.action_seq)
+            solution = self.solutions[solution_matches.index(True)]
+            self.completed_solutions.append(solution)
         else:
             attempt_success = False
         self.solution_found.append(attempt_success)
